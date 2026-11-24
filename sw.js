@@ -1,5 +1,5 @@
 /* 여행 총무 — 오프라인 캐시 */
-const CACHE = 'trip-treasurer-1.5';
+const CACHE = 'trip-treasurer-1.7';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

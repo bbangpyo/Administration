@@ -7,7 +7,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="여행 총무">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#f4f4f2">
+<meta name="theme-color" content="#f4f4f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
@@ -18,7 +19,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 html,body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-size:17px;line-height:1.45}
-#app{max-width:480px;margin:0 auto;min-height:100vh;padding:calc(env(safe-area-inset-top) + 14px) 14px calc(env(safe-area-inset-bottom) + 96px)}
+#app{max-width:480px;margin:0 auto;min-height:100vh;padding:calc(env(safe-area-inset-top) + 18px) 14px calc(env(safe-area-inset-bottom) + 96px)}
 button{font:inherit;color:inherit;background:var(--card);border:0.5px solid var(--line2);border-radius:10px;padding:8px 14px;cursor:pointer}
 button.pri{background:var(--tx);color:var(--bg);border:none;font-weight:600;width:100%;padding:13px;margin-top:22px;font-size:18px}
 button.danger{background:var(--bad);color:#fff;border:none}
@@ -39,7 +40,7 @@ p{margin:0}
 .seg button{border:none;background:none;padding:8px 0;border-radius:8px;color:var(--tx2);font-size:16px}
 .seg button.on{background:var(--card);color:var(--tx);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
 .seg .cnt{font-size:14px;color:var(--tx3);margin-left:3px}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:146px;gap:10px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:168px;gap:10px}
 .grid.ed{gap:14px;padding:6px 6px 0 0}
 .tcard{position:relative;background:var(--card);border:0.5px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;min-width:0;cursor:pointer}
 .tcard.live{box-shadow:inset 0 0 0 1.5px var(--ok)}
@@ -47,6 +48,7 @@ p{margin:0}
 .tcard .tn{font-size:18px;font-weight:700;margin-top:10px}
 .tcard .ts{font-size:14px;color:var(--tx2);margin-top:1px;min-height:17px}
 .tcard .ta{font-size:16px;font-weight:600;margin-top:auto}
+.tcard .tm{font-size:13px;color:var(--tx2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ctag{font-size:11px;padding:1px 5px;border-radius:5px;background:var(--acbg);color:var(--ac);margin-left:4px;vertical-align:1px}
 .addcard{background:none;border:1px dashed var(--line2);align-items:center;justify-content:center;color:var(--tx2);font-size:16px;gap:4px}
 .st{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:3px 8px;border-radius:8px;align-self:flex-start;background:var(--soft);color:var(--tx2);white-space:nowrap;max-width:100%;cursor:pointer}
@@ -128,6 +130,14 @@ input[type=checkbox]{width:19px;height:19px;accent-color:var(--ac);margin:0;flex
 .route .sw{position:relative;display:inline-flex}
 .legfoot{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
 .addstop{border:0.5px dashed var(--line2);background:none;border-radius:16px;padding:5px 12px;font-size:14px;color:var(--tx2)}
+.mycard{background:var(--card);border:1px solid var(--acln);border-radius:12px;padding:12px;margin-top:12px}
+.mycard .mh{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:16px}
+.mycard .mh>span{display:inline-flex;align-items:center;gap:5px}
+.mycard .lk{font-weight:400;font-size:13px;color:var(--tx3)}
+.mycard .mv{font-size:25px;font-weight:700;color:var(--ac);margin:4px 0 6px}
+.mycard .ml{display:flex;justify-content:space-between;font-size:15px;color:var(--tx2);padding:5px 0;border-top:0.5px solid var(--line)}
+.tag.mt{color:var(--ac);font-weight:600}
+.t .g.mine td{background:var(--acbg);color:var(--ac)}
 .tag{font-size:13px;color:var(--tx2);margin-right:5px}
 .t{width:100%;table-layout:fixed;border-collapse:collapse;font-size:16px;background:var(--card);border-radius:12px;overflow:hidden;border:0.5px solid var(--line)}
 .t td,.t th{padding:9px 10px;border-bottom:0.5px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -194,7 +204,7 @@ input[type=checkbox]{width:19px;height:19px;accent-color:var(--ac);margin:0;flex
 .nav button.on{color:var(--ac)}
 .fab{position:fixed;z-index:11;right:max(16px,calc(50% - 224px));bottom:calc(env(safe-area-inset-bottom) + 72px);border-radius:26px;background:var(--ac);color:#fff;border:none;padding:12px 18px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.2);display:flex;align-items:center;gap:6px}
 .ver{text-align:center;font-size:13px;color:var(--tx3);margin-top:28px}
-.sbar{position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:var(--bg);z-index:40;pointer-events:none}
+.sbar{position:fixed;top:0;left:0;right:0;height:calc(env(safe-area-inset-top) + 10px);background:var(--bg);z-index:40}
 html,body{touch-action:manipulation;overscroll-behavior-y:none}
 .loading{color:var(--tx2);text-align:center;padding:40px 0}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
@@ -221,7 +231,7 @@ const ymd=s=>{const p=String(s||'').split('-');return p.length===3?p[0].slice(2)
 const digits=s=>Number(String(s||'').replace(/[^0-9]/g,''))||0;
 const decNum=s=>{const v=String(s==null?'':s).replace(/,/g,'').trim();if(!v)return NaN;return Number(v);};
 const sv=(p,w,sw)=>'<svg width="'+w+'" height="'+w+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'+(sw||2)+'" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>';
-const P={pencil:'<path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3"/><path d="M13.5 6.5l3 3"/>',x:'<path d="M18 6L6 18M6 6l12 12"/>',plus:'<path d="M12 5v14M5 12h14"/>',pin:'<path d="M15 4.5l-4 4-4 1.5-1.5 1.5 7 7 1.5-1.5 1.5-4 4-4"/><path d="M9 15l-4.5 4.5"/><path d="M14.5 4L20 9.5"/>',check:'<path d="M5 12l5 5L20 7"/>',down:'<path d="M6 9l6 6 6-6"/>',left:'<path d="M15 6l-6 6 6 6"/>',home:'<path d="M5 12H3l9-9 9 9h-2"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>',receipt:'<path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16l-3-2-2 2-2-2-2 2-2-2-3 2"/><path d="M9 7h6M9 11h6M9 15h4"/>',users:'<circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.1a4 4 0 0 1 0 7.8M21 21v-2a4 4 0 0 0-3-3.9"/>',ops:'<path d="M7.5 4.5v6M4.5 7.5h6"/><path d="M13.5 7.5h6"/><path d="M5.2 14.2l4.6 4.6M9.8 14.2l-4.6 4.6"/><path d="M13.5 16.5h6"/><circle cx="16.5" cy="13.9" r=".6" fill="currentColor"/><circle cx="16.5" cy="19.1" r=".6" fill="currentColor"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',trash:'<path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/>',alert:'<circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/>',ok:'<circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/>',lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',swap:'<path d="M7 4v16M4 7l3-3 3 3M17 20V4M14 17l3 3 3-3"/>',cloud:'<path d="M7 18a4.5 4.5 0 0 1-.6-9 6 6 0 0 1 11.4 1.5A4 4 0 0 1 17 18z"/><path d="M12 11v6M9.5 13.5L12 11l2.5 2.5"/>',upload:'<path d="M12 4v11M8 8l4-4 4 4"/><path d="M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/>',download:'<path d="M12 4v11M8 11l4 4 4-4"/><path d="M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/>'};
+const P={pencil:'<path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3"/><path d="M13.5 6.5l3 3"/>',x:'<path d="M18 6L6 18M6 6l12 12"/>',plus:'<path d="M12 5v14M5 12h14"/>',pin:'<path d="M15 4.5l-4 4-4 1.5-1.5 1.5 7 7 1.5-1.5 1.5-4 4-4"/><path d="M9 15l-4.5 4.5"/><path d="M14.5 4L20 9.5"/>',check:'<path d="M5 12l5 5L20 7"/>',down:'<path d="M6 9l6 6 6-6"/>',left:'<path d="M15 6l-6 6 6 6"/>',home:'<path d="M5 12H3l9-9 9 9h-2"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>',receipt:'<path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16l-3-2-2 2-2-2-2 2-2-2-3 2"/><path d="M9 7h6M9 11h6M9 15h4"/>',users:'<circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.1a4 4 0 0 1 0 7.8M21 21v-2a4 4 0 0 0-3-3.9"/>',ops:'<path d="M7.5 4.5v6M4.5 7.5h6"/><path d="M13.5 7.5h6"/><path d="M5.2 14.2l4.6 4.6M9.8 14.2l-4.6 4.6"/><path d="M13.5 16.5h6"/><circle cx="16.5" cy="13.9" r=".6" fill="currentColor"/><circle cx="16.5" cy="19.1" r=".6" fill="currentColor"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',trash:'<path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/>',alert:'<circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/>',ok:'<circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>',lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',swap:'<path d="M7 4v16M4 7l3-3 3 3M17 20V4M14 17l3 3 3-3"/>',cloud:'<path d="M7 18a4.5 4.5 0 0 1-.6-9 6 6 0 0 1 11.4 1.5A4 4 0 0 1 17 18z"/><path d="M12 11v6M9.5 13.5L12 11l2.5 2.5"/>',upload:'<path d="M12 4v11M8 8l4-4 4 4"/><path d="M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/>',download:'<path d="M12 4v11M8 11l4 4 4-4"/><path d="M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/>'};
 const ic=(n,w,sw)=>sv(P[n],w||18,sw);
 
 /* ---------- constants ---------- */
@@ -230,6 +240,7 @@ const QK={JPY:[1000,5000,10000,50000],USD:[10,50,100,500],EUR:[10,50,100,500],CN
 const SN=['여행 중','출발 전','여행 완료'];
 const KIND={dom:'🚗 국내',abroad:'✈️ 해외'};
 const defaultCats=()=>[{n:'식비'},{n:'놀거리'},{n:'교통'},{n:'숙소',fx:1,lock:1},{n:'항공',fx:1,lock:1},{n:'기타',lock:1,nofx:1}];
+const defaultPCats=()=>[{n:'쇼핑'},{n:'식비'},{n:'기념품'},{n:'기타',lock:1}];
 const fxLabel=n=>n==='숙소'?'숙박비':n==='항공'?'항공권':n;
 
 /* ---------- state ---------- */
@@ -249,7 +260,7 @@ function normProfile(p){p=p||{};p.members=Array.isArray(p.members)?p.members:[];
   if(!p.currencies.some(c=>c.k==='USD'))p.currencies.splice(1,0,clone(DEF_CUR[1]));
   p.lastBackup=p.lastBackup||null;return p;}
 function norm(t){t=t||{};
-  t.members=Array.isArray(t.members)?t.members:[];t.cats=Array.isArray(t.cats)&&t.cats.length?t.cats:defaultCats();
+  t.members=Array.isArray(t.members)?t.members:[];t.cats=Array.isArray(t.cats)&&t.cats.length?t.cats:defaultCats();t.pcats=Array.isArray(t.pcats)&&t.pcats.length?t.pcats:defaultPCats();
   t.exps=Array.isArray(t.exps)?t.exps:[];t.exps.forEach(e=>{if(e.cur!=='F')e.cur='K';});
   t.rounds=Array.isArray(t.rounds)?t.rounds:[];t.rounds.forEach(r=>{r.paid=r.paid&&typeof r.paid==='object'?r.paid:{};Object.keys(r.paid).forEach(k=>{const v=Number(r.paid[k]);if(v===1&&r.amt>1)r.paid[k]=r.amt;else if(!(v>0))delete r.paid[k];else r.paid[k]=Math.min(v,r.amt);});});
   t.refunded=t.refunded&&typeof t.refunded==='object'?t.refunded:{};t.inc=t.inc&&typeof t.inc==='object'?t.inc:{};
@@ -327,11 +338,15 @@ function toKRW(t,r){t.exps.forEach(e=>{if(e.cur==='F'){e.amt=Math.round((e.famt|
 /* ---------- calculations ---------- */
 const now=()=>D(todayStr());
 function catOf(t,n){return t.cats.find(c=>c.n===n);}
+function gx(t){return t.exps.filter(e=>!e.mine);}
+function mx(t){return t.exps.filter(e=>e.mine);}
+function mineSum(t){return mx(t).reduce((a,e)=>a+krw(t,e),0);}
+function catsFor(t,mine){return mine?t.pcats:t.cats;}
 function isFx(t,n){const c=catOf(t,n);return !!(c&&c.fx);}
 function calc(t){
   const N=t.members.length,per=v=>N?v/N:0;
   let nonfx=0,allFixed=0;const fixedBy={};
-  t.exps.forEach(e=>{const a=krw(t,e);if(isFx(t,e.cat)){fixedBy[e.cat]=(fixedBy[e.cat]||0)+a;allFixed+=a;}else nonfx+=a;});
+  gx(t).forEach(e=>{const a=krw(t,e);if(isFx(t,e.cat)){fixedBy[e.cat]=(fixedBy[e.cat]||0)+a;allFixed+=a;}else nonfx+=a;});
   let inc=0;Object.keys(fixedBy).forEach(c=>{if(t.inc[c])inc+=fixedBy[c];});
   let paid=0,due=0;const unpaid={};
   t.rounds.forEach(r=>t.members.forEach(m=>{const pa=paidOf(r,m.id);due+=r.amt;paid+=pa;if(pa<r.amt)unpaid[m.id]=(unpaid[m.id]||0)+r.amt-pa;}));
@@ -341,7 +356,7 @@ function paidOf(r,mid){const v=Number(r.paid[mid])||0;return Math.min(v,r.amt);}
 function fxSettle(t){
   /* 숙박비·항공권처럼 한 사람이 결제한 고정 지출의 정산 현황 */
   const N=t.members.length,list=[];
-  t.exps.forEach(e=>{if(!isFx(t,e.cat)||!e.payer)return;const payer=t.members.find(m=>m.id===e.payer);if(!payer||!N)return;
+  gx(t).forEach(e=>{if(!isFx(t,e.cat)||!e.payer)return;const payer=t.members.find(m=>m.id===e.payer);if(!payer||!N)return;
     const per=Math.round(krw(t,e)/N),got=e.got||{};
     const rows=t.members.filter(m=>m.id!==e.payer).map(m=>{const g=Math.min(Number(got[m.id])||0,per);return {m,g,left:per-g};});
     list.push({e,payer,per,rows});});
@@ -382,7 +397,7 @@ function vList(){
   L.forEach(({t,st})=>{const c=calc(t);
     h+='<div class="tcard'+(st===0?' live':'')+'"'+(ui.listEdit?'':' data-a="open-trip" data-v="'+esc(t.id)+'"')+'>';
     h+='<span class="st" data-a="status" data-v="'+esc(t.id)+'" role="button" aria-label="상태 바꾸기"><span class="dot d'+st+'"></span><span class="ell">'+esc(stLabel(t,st,n))+'</span>'+ic('down',12)+'</span>';
-    h+='<p class="tn">'+esc(t.name)+'</p><p class="ts">'+esc(cardDates(t))+(t.kind==='abroad'?'<span class="ctag">'+esc(t.cur.k)+'</span>':'')+'</p><p class="ts">'+esc(t.desc||'')+'</p><p class="ta">'+won(c.total)+'원</p>';
+    h+='<p class="tn">'+esc(t.name)+'</p><p class="ts">'+esc(cardDates(t))+(t.kind==='abroad'?'<span class="ctag">'+esc(t.cur.k)+'</span>':'')+'</p><p class="ts">'+esc(t.desc||'')+'</p><p class="ta">'+won(c.total)+'원</p><p class="tm">내 지출 '+(c.N?won(c.total/c.N+mineSum(t))+'원':'–')+'</p>';
     if(ui.listEdit)h+='<button class="xb" data-a="del-trip" data-v="'+esc(t.id)+'" aria-label="'+esc(t.name)+' 삭제">'+ic('x',12)+'</button>';
     if(ui.statusOpen===t.id)h+='<div class="smenu">'+[1,0,2].map(k=>'<div class="sopt'+(st===k?' on':'')+'" data-a="set-status" data-v="'+esc(t.id)+'|'+k+'"><span class="dot d'+k+'"></span><span style="flex:1">'+SN[k]+'</span>'+(st===k?ic('check',14):'')+'</div>').join('')+'</div>';
     h+='</div>';});
@@ -466,28 +481,33 @@ function vHome(t,c){
   h+='<div class="box"><p class="l">쓴 금액</p><p class="v">'+won(c.spent)+'원</p><p class="p">'+pp(c.spent)+'</p></div>';
   h+='<div class="box rem"><p class="l">남은 금액</p><p class="v">'+won(c.remain)+'원</p><p class="p">'+pp(c.remain)+'</p></div></div>';
   if(!c.N)h+='<p class="note">멤버가 없어 인당 금액을 계산할 수 없어요. 오른쪽 위 설정에서 멤버를 추가해 주세요.</p>';
+  const share=c.N?c.total/c.N:0,ms=mineSum(t);
+  h+='<div class="mycard"><div class="mh"><span>'+ic('user',16)+' 내 총 지출</span><span class="lk">'+ic('lock',12)+' 나만 봐요</span></div><p class="mv">'+won(share+ms)+'원</p>';
+  h+='<div class="ml"><span>내 몫 ('+(c.N?'1/'+c.N:'–')+')</span><span>'+won(share)+'원</span></div><div class="ml"><span>나만 쓴 돈</span><span>'+won(ms)+'원</span></div></div>';
   const rec=t.exps.slice().sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,5);
   h+='<p class="sect">최근 지출</p>';
   if(!rec.length)h+='<p class="empty">아직 지출이 없어요</p>';
-  else h+='<div class="list">'+rec.map(e=>'<div class="it" data-a="exp-open" data-v="'+esc(e.id)+'"><span class="m"><span class="tag">'+esc(e.cat)+'</span>'+esc(e.memo||e.cat)+'</span><span class="v">'+(e.cur==='F'?'<span class="tag">'+fnum(t,e.famt)+esc(t.cur.u)+'</span>':'')+won(krw(t,e))+'원</span></div>').join('')+'</div>';
+  else h+='<div class="list">'+rec.map(e=>'<div class="it" data-a="exp-open" data-v="'+esc(e.id)+'"><span class="m">'+(e.mine?'<span class="tag mt">나만</span>':'')+'<span class="tag">'+esc(e.cat)+'</span>'+esc(e.memo||e.cat)+'</span><span class="v">'+(e.cur==='F'?'<span class="tag">'+fnum(t,e.famt)+esc(t.cur.u)+'</span>':'')+won(krw(t,e))+'원</span></div>').join('')+'</div>';
   return h;
 }
 function expRow(t,e,x,fixed){const sub=fixed?expSub(t,e):'';const py=fixed&&e.payer?t.members.find(m=>m.id===e.payer):null;
   return '<tr class="row'+(x?' x':'')+'" data-a="exp-open" data-v="'+esc(e.id)+'"><td><span class="tag">'+esc(e.cat)+'</span>'+esc(e.memo||(e.cat==='항공'&&e.fl?{out:'가는 편',back:'오는 편',rt:'왕복'}[e.fl.type]:e.cat))+(sub?sub.split('\n').map(l=>'<span class="subl">'+esc(l)+'</span>').join(''):'')+(py?'<span class="subl">'+esc(py.name)+'님이 결제</span>':'')+'</td><td class="r">'+rowMon(t,e,fixed)+'</td></tr>';}
 function groupsOf(t){
-  const nE=t.exps.filter(e=>!isFx(t,e.cat)).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:(a.at||0)-(b.at||0));
+  const nE=gx(t).filter(e=>!isFx(t,e.cat)).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:(a.at||0)-(b.at||0));
   const g=[];nE.forEach(e=>{let last=g[g.length-1];if(!last||last.d!==e.date){last={d:e.date,items:[],sum:0};g.push(last);}last.items.push(e);last.sum+=krw(t,e);});
   return g;}
 function vExp(t,c){
   let h=fxChecks(t)+viewToggle(t);
   h+='<div class="seg"><button class="'+(ui.sub==='list'?'on':'')+'" data-a="sub" data-v="list">내역</button><button class="'+(ui.sub==='table'?'on':'')+'" data-a="sub" data-v="table">표</button></div>';
   if(!t.exps.length)return h+'<p class="empty">아직 지출이 없어요. ＋ 추가로 기록해 보세요.</p>';
-  const fxE=t.exps.filter(e=>isFx(t,e.cat)),G=groupsOf(t);
+  const fxE=gx(t).filter(e=>isFx(t,e.cat)),G=groupsOf(t),ME=mx(t).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:(a.at||0)-(b.at||0)),ms=mineSum(t);
   if(ui.sub==='list'){
     h+='<table class="t"><colgroup><col style="width:62%"><col style="width:38%"></colgroup>';
     if(fxE.length){h+='<tr class="g"><td>'+ic('pin',13)+' 사전 결제</td><td class="r">'+mon(t,c.inc,true)+'</td></tr>';fxE.forEach(e=>{h+=expRow(t,e,!t.inc[e.cat],true);});}
     G.forEach(g=>{h+='<tr class="g"><td>'+esc(dayLabel(t,g.d))+'</td><td class="r">'+mon(t,g.sum,false)+'</td></tr>';g.items.forEach(e=>{h+=expRow(t,e,false,false);});});
+    if(ME.length){h+='<tr class="g mine"><td>'+ic('user',14)+' 나만 쓴 돈</td><td class="r">'+mon(t,ms,false)+'</td></tr>';ME.forEach(e=>{h+=expRow(t,e,false,false);});}
     h+='</table>';
+    if(ME.length)h+='<p class="note">나만 쓴 돈은 회비·인당 계산에 들어가지 않고, 나만 볼 수 있어요.</p>';
     if(fxE.some(e=>!t.inc[e.cat]))h+='<p class="note">줄이 그어진 항목은 체크를 끈 고정 지출이에요. 합계에서 빠져요.</p>';
     if(isF(t)&&fxE.length)h+='<p class="note">사전 결제(항공·숙소 등)는 원화로 낸 돈이라 원화 그대로 보여요.</p>';
     return h;}
@@ -499,13 +519,17 @@ function vExp(t,c){
   G.forEach(g=>{bal-=g.sum;h+='<tr><td>'+md(g.d)+'</td><td class="r">'+num(g.sum)+'</td><td class="r">'+num(c.per(g.sum))+'</td><td class="r">'+num(bal)+'</td></tr>';});
   if(f)h+='<tr class="tot"><td>합계</td><td class="r">'+num(c.nonfx)+'</td><td class="r">'+num(c.per(c.nonfx))+'</td><td class="r acc">'+num(c.remain)+'</td></tr></table><p class="note">외화 보기에서는 회비로 쓴 돈만 합계에 넣어요. 사전 결제를 더한 전체 금액은 원화 보기에서 볼 수 있어요.</p>';
   else h+='<tr class="tot"><td>합계</td><td class="r">'+num(c.spent,1)+'</td><td class="r">'+num(c.per(c.spent),1)+'</td><td class="r acc">'+num(c.remain,1)+'</td></tr></table>';
-  const C={};t.exps.forEach(e=>{const fx=isFx(t,e.cat);if(f?!fx:(!fx||t.inc[e.cat]))C[e.cat]=(C[e.cat]||0)+krw(t,e);});
+  const C={};gx(t).forEach(e=>{const fx=isFx(t,e.cat);if(f?!fx:(!fx||t.inc[e.cat]))C[e.cat]=(C[e.cat]||0)+krw(t,e);});
   const tot=f?c.nonfx:c.spent;
   const E=Object.keys(C).map(k=>[k,C[k]]).sort((a,b)=>b[1]-a[1]);
   h+='<p class="sect">분류별</p><table class="t sm"><colgroup><col style="width:34%"><col style="width:40%"><col style="width:26%"></colgroup><tr><th>분류</th><th>금액</th><th>비율</th></tr>';
   E.forEach(([k,v])=>{h+='<tr><td>'+esc(k)+'</td><td class="r">'+num(v)+'</td><td class="r">'+(tot?(v/tot*100).toFixed(1):'0.0')+'%</td></tr>';});
   h+='<tr class="tot"><td>합계</td><td class="r">'+num(tot)+'</td><td class="r">100%</td></tr></table>';
   h+='<p class="note">남은 금액은 낸 회비에서 회비로 쓴 돈을 뺀 실제 잔액이에요. 고정 지출 체크와 상관없이 같아요.</p>';
+  if(ME.length){const PC={};ME.forEach(e=>{PC[e.cat]=(PC[e.cat]||0)+krw(t,e);});
+    h+='<p class="sect">'+ic('user',15)+' 나만 쓴 돈</p><table class="t sm"><colgroup><col style="width:50%"><col style="width:50%"></colgroup><tr><th>분류</th><th>금액</th></tr>';
+    Object.keys(PC).sort((a,b)=>PC[b]-PC[a]).forEach(k=>{h+='<tr><td>'+esc(k)+'</td><td class="r">'+num(PC[k])+'</td></tr>';});
+    h+='<tr class="tot"><td>합계</td><td class="r">'+num(ms)+'</td></tr></table>';}
   return h;
 }
 function roundShort(t,r){return (t.rounds.indexOf(r)+1)+'차';}
@@ -576,7 +600,7 @@ function vTrip(){
 
 /* ---------- views: expense form ---------- */
 function vSettle(t){
-  const L=fxSettle(t),fxNoPayer=t.exps.filter(e=>isFx(t,e.cat)&&!e.payer).length;
+  const L=fxSettle(t),fxNoPayer=gx(t).filter(e=>isFx(t,e.cat)&&!e.payer).length;
   if(!L.length&&!fxNoPayer)return '';
   const W=v=>won(v)+'원';
   let h='<p class="sect" style="margin-top:26px">숙박비 · 항공권 정산</p>';
@@ -602,28 +626,31 @@ function vExpForm(){
   const t=cur();if(!t){ui.view='list';return vList();}
   const d=ui.draft,c=calc(t),isNew=!ui.expId,ab=t.kind==='abroad',F=ab&&d.cur==='F';
   let h='<div class="hdr"><div class="ttl"><button class="bare" data-a="go-trip" aria-label="닫기">'+ic('x',22)+'</button><h2 class="h2">'+(isNew?'지출 추가':'지출 수정')+'</h2></div></div>'+bannerH();
+  h+='<div class="seg" style="margin:0 0 4px"><button class="'+(d.mine?'':'on')+'" data-a="e-kind" data-v="g">함께 쓴 돈</button><button class="'+(d.mine?'on':'')+'" data-a="e-kind" data-v="p">'+ic('user',15)+' 나만 쓴 돈</button></div>';
+  h+='<p class="hint" style="margin:0 0 14px">'+(d.mine?'내 지갑에서 낸 돈이에요. 회비·인당 계산에 들어가지 않고 나만 볼 수 있어요.':'회비로 낸 돈이에요. 멤버 수로 나눠서 계산해요.')+'</p>';
+  const CL=catsFor(t,d.mine);
   h+='<div class="lbrow" style="margin-top:0"><span class="lb">금액</span>'+(ab?pill('ecur',F,'원화','외화','외화로 입력'):'')+'</div>';
   h+='<div class="amt" style="margin-top:8px"><input id="amtIn" type="text" inputmode="'+(F&&decOf(t.cur)?'decimal':'numeric')+'" data-f="e.amt" value="'+esc(F?(d.famt?nf(d.famt,decOf(t.cur)):''):(d.amt?won(d.amt):''))+'" placeholder="0"><span>'+(F?esc(t.cur.u):'원')+'</span></div>';
   h+='<p class="hint" id="perPrev">'+amtHint(t)+'</p>';
   h+='<div class="lbrow"><span class="lb">카테고리</span>'+(ui.catEdit?'<button class="textbtn" data-a="cat-edit">완료</button>':'<button class="iconbtn" data-a="cat-edit" aria-label="카테고리 편집">'+ic('pencil',16)+'</button>')+'</div>';
   h+='<div class="chips'+(ui.catEdit?' ed':'')+'">';
-  t.cats.forEach(k=>{
+  CL.forEach(k=>{
     if(ui.catEdit){h+='<span class="chip" style="cursor:default">'+esc(k.n);
-      if(!k.nofx)h+='<button class="pb'+(k.fx?' on':'')+(k.lock?' lock':'')+'"'+(k.lock?'':' data-a="cat-pin" data-v="'+esc(k.n)+'"')+' aria-label="'+esc(k.n)+' 고정 지출">'+ic('pin',10)+'</button>';
+      if(!k.nofx&&!d.mine)h+='<button class="pb'+(k.fx?' on':'')+(k.lock?' lock':'')+'"'+(k.lock?'':' data-a="cat-pin" data-v="'+esc(k.n)+'"')+' aria-label="'+esc(k.n)+' 고정 지출">'+ic('pin',10)+'</button>';
       if(!k.lock)h+='<button class="xb" data-a="cat-x" data-v="'+esc(k.n)+'" aria-label="'+esc(k.n)+' 삭제">'+ic('x',10)+'</button>';
       h+='</span>';}
     else h+='<span class="chip'+(d.cat===k.n?' on':'')+'" data-a="cat-pick" data-v="'+esc(k.n)+'">'+esc(k.n)+(k.fx?'<svg class="pinmark" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="고정 지출">'+P.pin+'</svg>':'')+'</span>';});
   if(ui.catEdit)h+='<span class="chip add" data-a="cat-add">'+ic('plus',14)+'추가</span>';
   h+='</div>';
-  if(ui.catAsk){const used=t.exps.filter(e=>e.cat===ui.catAsk).length;h+='<div class="confirm">\''+esc(ui.catAsk)+'\' 카테고리를 삭제할까요?<small>이 카테고리의 지출 '+used+'건은 기타로 옮겨져요.</small><div class="btns"><button data-a="cat-x-no">취소</button><button class="danger" data-a="cat-x-yes">삭제</button></div></div>';}
-  if(ui.catEdit&&ui.catAdding)h+='<div class="inline"><input class="inp" id="catNew" type="text" placeholder="입장권" maxlength="12" enterkeyhint="done"><button data-a="cat-add-ok">추가</button><button data-a="cat-add-no" aria-label="취소">'+ic('x',14)+'</button></div><label class="ckline"><input type="checkbox" id="catNewFx">고정 지출로 만들기</label>';
-  if(ui.catEdit)h+='<p class="hint">빨간 ×는 삭제, 왼쪽 위 핀은 고정 지출 켜기·끄기 (고정 지출은 회비에서 나가지 않는 돈)</p>';
-  h+='<p class="lb">내용</p><input class="inp" type="text" data-f="e.memo" value="'+esc(d.memo)+'" placeholder="'+(d.cat==='숙소'?'난바 호텔':d.cat==='항공'?'대한항공':'저녁 회센터')+'" maxlength="40">';
-  if(isFx(t,d.cat)&&t.members.length){h+='<p class="lb">결제한 사람</p><div class="chips">'+t.members.map(m=>'<span class="chip'+(d.payer===m.id?' on':'')+'" data-a="e-payer" data-v="'+esc(m.id)+'">'+(d.payer===m.id?ic('check',14):'')+esc(m.name)+'</span>').join('')+'</div><p class="hint">고르면 회비 탭에서 나머지 멤버가 이 사람에게 보낼 돈(1/N)을 체크할 수 있어요. 다시 누르면 선택이 풀려요.</p>';}
-  if(d.cat==='숙소'){const n=d.ci&&d.co?Math.round((D(d.co)-D(d.ci))/DAY):null;
+  if(ui.catAsk){const used=t.exps.filter(e=>e.cat===ui.catAsk&&!!e.mine===!!d.mine).length;h+='<div class="confirm">\''+esc(ui.catAsk)+'\' 카테고리를 삭제할까요?<small>이 카테고리의 지출 '+used+'건은 기타로 옮겨져요.</small><div class="btns"><button data-a="cat-x-no">취소</button><button class="danger" data-a="cat-x-yes">삭제</button></div></div>';}
+  if(ui.catEdit&&ui.catAdding)h+='<div class="inline"><input class="inp" id="catNew" type="text" placeholder="입장권" maxlength="12" enterkeyhint="done"><button data-a="cat-add-ok">추가</button><button data-a="cat-add-no" aria-label="취소">'+ic('x',14)+'</button></div>'+(d.mine?'':'<label class="ckline"><input type="checkbox" id="catNewFx">고정 지출로 만들기</label>')+'';
+  if(ui.catEdit)h+='<p class="hint">'+(d.mine?'빨간 ×는 삭제 (나만 쓴 돈 카테고리)':'빨간 ×는 삭제, 왼쪽 위 핀은 고정 지출 켜기·끄기 (고정 지출은 회비에서 나가지 않는 돈)')+'</p>';
+  h+='<p class="lb">내용</p><input class="inp" type="text" data-f="e.memo" value="'+esc(d.memo)+'" placeholder="'+(d.mine?'기념품 키링':d.cat==='숙소'?'난바 호텔':d.cat==='항공'?'대한항공':'저녁 회센터')+'" maxlength="40">';
+  if(!d.mine&&isFx(t,d.cat)&&t.members.length){h+='<p class="lb">결제한 사람</p><div class="chips">'+t.members.map(m=>'<span class="chip'+(d.payer===m.id?' on':'')+'" data-a="e-payer" data-v="'+esc(m.id)+'">'+(d.payer===m.id?ic('check',14):'')+esc(m.name)+'</span>').join('')+'</div><p class="hint">고르면 회비 탭에서 나머지 멤버가 이 사람에게 보낼 돈(1/N)을 체크할 수 있어요. 다시 누르면 선택이 풀려요.</p>';}
+  if(!d.mine&&d.cat==='숙소'){const n=d.ci&&d.co?Math.round((D(d.co)-D(d.ci))/DAY):null;
     h+='<p class="lb">숙박 기간</p><div class="row2"><div><p class="hint" style="margin:0 0 4px">체크인</p><input class="inp" type="date" data-f="e.ci" value="'+esc(d.ci)+'"></div><span style="color:var(--tx3);align-self:end;padding-bottom:12px">–</span><div><p class="hint" style="margin:0 0 4px">체크아웃</p><input class="inp" type="date" data-f="e.co" value="'+esc(d.co)+'"></div></div>';
     h+='<p class="hint acc" id="nightHint" style="font-weight:600">'+nightText(t)+'</p>';}
-  else if(d.cat==='항공'){const f=d.fl;
+  else if(!d.mine&&d.cat==='항공'){const f=d.fl;
     h+='<p class="lb">여정</p><div class="seg" style="grid-template-columns:repeat(3,1fr);margin:0">'+[['out','가는 편'],['back','오는 편'],['rt','왕복']].map(x=>'<button class="'+(f.type===x[0]?'on':'')+'" data-a="fl-type" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div>';
     [['out','가는 편'],['back','오는 편']].forEach(([k,lab])=>{if((k==='out'&&f.type==='back')||(k==='back'&&f.type==='out'))return;const g=f[k];
       h+='<div class="legbox"><div class="lh"><span>'+lab+'</span><input class="inp" type="date" data-f="fl.'+k+'.date" value="'+esc(g.date)+'"></div><div class="route">';
@@ -641,8 +668,9 @@ function vExpForm(){
 }
 function nightText(t){const d=ui.draft;if(!d.ci||!d.co)return '';const n=Math.round((D(d.co)-D(d.ci))/DAY);if(n<1)return '';
   const k=t.kind==='abroad'&&d.cur==='F'?Math.round((d.famt||0)*rateOf(t)):(d.amt||0);return n+'박'+(k?' · 1박 평균 '+won(k/n)+'원':'');}
-function amtHint(t){const d=ui.draft,N=t.members.length;
+function amtHint(t){const d=ui.draft,N=d.mine?0:t.members.length;
   if(t.kind==='abroad'&&d.cur==='F'){const r=rateOf(t);if(!r)return '환율 탭에서 적용 환율을 먼저 넣어 주세요';const k=Math.round((d.famt||0)*r);return '≈ '+won(k)+'원'+(N?' · 인당 '+won(k/N)+'원':'');}
+  if(d.mine)return '';
   return N?'인당 '+won((d.amt||0)/N)+'원':'';}
 
 /* ---------- render ---------- */
@@ -674,9 +702,9 @@ function go(view){ui.view=view;ui.err='';ui.statusOpen=null;render();top0();}
 /* ---------- actions ---------- */
 function openExp(id,preset){const t=cur();
   ui.catEdit=false;ui.catAdding=false;ui.catAsk=null;ui.delExp=false;ui.err='';
-  if(id){const e=t.exps.find(x=>x.id===id);if(!e)return;ui.expId=id;ui.draft={cur:e.cur,amt:e.amt||0,famt:e.famt||0,cat:e.cat,memo:e.memo||'',date:e.date,payer:e.payer||'',ci:e.ci||'',co:e.co||'',fl:e.fl?clone(e.fl):null};}
+  if(id){const e=t.exps.find(x=>x.id===id);if(!e)return;ui.expId=id;ui.draft={mine:!!e.mine,cur:e.cur,amt:e.amt||0,famt:e.famt||0,cat:e.cat,memo:e.memo||'',date:e.date,payer:e.payer||'',ci:e.ci||'',co:e.co||'',fl:e.fl?clone(e.fl):null};}
   else{ui.expId=null;let d=todayStr();if(t.start&&t.end){if(D(d)<D(t.start))d=t.start;else if(D(d)>D(t.end))d=t.end;}
-    ui.draft={cur:'K',amt:0,famt:0,cat:t.cats.some(k=>k.n==='식비')?'식비':(t.cats[0]&&t.cats[0].n)||'기타',memo:'',date:d};
+    ui.draft={mine:false,cur:'K',amt:0,famt:0,cat:t.cats.some(k=>k.n==='식비')?'식비':(t.cats[0]&&t.cats[0].n)||'기타',memo:'',date:d};
     if(t.kind==='abroad'&&rateOf(t)&&t.fview)ui.draft.cur='F';
     if(preset)Object.assign(ui.draft,preset);}
   const d=ui.draft;if(d.payer==null)d.payer='';
@@ -789,33 +817,35 @@ const A={
   'exp-save'(){const t=cur(),d=ui.draft;const F=t.kind==='abroad'&&d.cur==='F';
     if(F){if(!rateOf(t)){ui.err='환율 탭에서 적용 환율을 먼저 넣어 주세요';render();return;}if(!(d.famt>0)){ui.err='금액을 입력해 주세요';render();return;}}
     else if(!(d.amt>0)){ui.err='금액을 입력해 주세요';render();return;}
-    if(!catOf(t,d.cat)){ui.err='카테고리를 골라 주세요';render();return;}
+    if(!catsFor(t,d.mine).some(k=>k.n===d.cat)){ui.err='카테고리를 골라 주세요';render();return;}
     let date=d.date;const extra={};
-    if(d.cat==='숙소'){if(!d.ci||!d.co){ui.err='체크인과 체크아웃 날짜를 골라 주세요';render();return;}if(D(d.co)<=D(d.ci)){ui.err='체크아웃은 체크인 다음 날 이후로 골라 주세요';render();return;}date=d.ci;extra.ci=d.ci;extra.co=d.co;}
-    else if(d.cat==='항공'){const f=clone(d.fl);const legs=f.type==='rt'?['out','back']:[f.type];
+    if(!d.mine&&d.cat==='숙소'){if(!d.ci||!d.co){ui.err='체크인과 체크아웃 날짜를 골라 주세요';render();return;}if(D(d.co)<=D(d.ci)){ui.err='체크아웃은 체크인 다음 날 이후로 골라 주세요';render();return;}date=d.ci;extra.ci=d.ci;extra.co=d.co;}
+    else if(!d.mine&&d.cat==='항공'){const f=clone(d.fl);const legs=f.type==='rt'?['out','back']:[f.type];
       for(const k of legs){const g=f[k];g.from=(g.from||'').trim();g.to=(g.to||'').trim();g.stops=g.stops.map(x=>(x||'').trim()).filter(Boolean);
         const lab=k==='out'?'가는 편':'오는 편';if(!g.date){ui.err=lab+' 날짜를 골라 주세요';render();return;}if(!g.from||!g.to){ui.err=lab+'의 출발과 도착 공항을 넣어 주세요';render();return;}}
       if(f.type==='out')delete f.back;if(f.type==='back')delete f.out;date=(f.out||f.back).date;extra.fl=f;}
     if(!date){ui.err='날짜를 입력해 주세요';render();return;}
     const rec=Object.assign({cur:F?'F':'K',cat:d.cat,memo:(d.memo||'').trim(),date:date},extra);
-    if(isFx(t,d.cat)&&d.payer)rec.payer=d.payer;
+    if(!d.mine&&isFx(t,d.cat)&&d.payer)rec.payer=d.payer;
+    if(d.mine)rec.mine=true;
     if(F)rec.famt=d.famt;else rec.amt=d.amt;
-    if(ui.expId){const e=t.exps.find(x=>x.id===ui.expId);if(e){const keepGot=e.payer&&e.payer===rec.payer?e.got:null;['amt','famt','ci','co','fl','payer','got'].forEach(k=>delete e[k]);Object.assign(e,rec);if(keepGot)e.got=keepGot;}}
+    if(ui.expId){const e=t.exps.find(x=>x.id===ui.expId);if(e){const keepGot=e.payer&&e.payer===rec.payer?e.got:null;['amt','famt','ci','co','fl','payer','got','mine'].forEach(k=>delete e[k]);Object.assign(e,rec);if(keepGot)e.got=keepGot;}}
     else{rec.id=newId();rec.at=Date.now();t.exps.push(rec);}
     saveTrip(t);go('trip');},
   'exp-del'(){ui.delExp=true;render();},
   'exp-del-no'(){ui.delExp=false;render();},
   'exp-del-yes'(){const t=cur();t.exps=t.exps.filter(e=>e.id!==ui.expId);saveTrip(t);ui.delExp=false;go('trip');},
   'cat-pick'(v){ui.draft.cat=v;ui.err='';render();},
+  'e-kind'(v){const t=cur(),d=ui.draft,m=v==='p';if(d.mine===m)return;d.mine=m;const L=catsFor(t,m);if(!L.some(k=>k.n===d.cat))d.cat=L.some(k=>k.n==='식비')?'식비':L[0].n;ui.catEdit=false;ui.catAdding=false;ui.catAsk=null;ui.err='';render();},
   'cat-edit'(){ui.catEdit=!ui.catEdit;ui.catAdding=false;ui.catAsk=null;ui.err='';render();},
   'cat-add'(){ui.catAdding=true;ui.focus='catNew';render();},
   'cat-add-no'(){ui.catAdding=false;ui.err='';render();},
   'cat-add-ok'(){const t=cur(),el=document.getElementById('catNew'),fx=document.getElementById('catNewFx');const v=(el&&el.value||'').trim();
     if(!v){ui.err='카테고리 이름을 입력해 주세요';ui.focus='catNew';render();return;}
-    if(catOf(t,v)){ui.err='이미 있는 카테고리예요';ui.focus='catNew';render();return;}
-    t.cats.push(fx&&fx.checked?{n:v,fx:1}:{n:v});ui.draft.cat=v;ui.catAdding=false;ui.err='';saveTrip(t);render();},
+    const L=catsFor(t,ui.draft.mine);if(L.some(k=>k.n===v)){ui.err='이미 있는 카테고리예요';ui.focus='catNew';render();return;}
+    L.push(!ui.draft.mine&&fx&&fx.checked?{n:v,fx:1}:{n:v});ui.draft.cat=v;ui.catAdding=false;ui.err='';saveTrip(t);render();},
   'cat-pin'(v){const t=cur(),k=catOf(t,v);if(!k||k.lock)return;if(k.fx){delete k.fx;delete t.inc[v];}else k.fx=1;saveTrip(t);render();},
-  'cat-x'(v){const t=cur();if(t.exps.some(e=>e.cat===v)){ui.catAsk=v;render();return;}delCat(t,v);},
+  'cat-x'(v){const t=cur(),m=!!ui.draft.mine;if(t.exps.some(e=>e.cat===v&&!!e.mine===m)){ui.catAsk=v;render();return;}delCat(t,v);},
   'cat-x-no'(){ui.catAsk=null;render();},
   'cat-x-yes'(){const t=cur(),v=ui.catAsk;ui.catAsk=null;delCat(t,v);},
   'round-add'(){ui.roundAdding=true;ui.err='';ui.focus='roundNew';render();},
@@ -845,8 +875,8 @@ const A={
     S.profile=normProfile(v.profile);S.profile.lastBackup=S.profile.lastBackup||Date.now();S.trips={};Object.keys(v.trips||{}).forEach(k=>{const t=norm(v.trips[k]);t.id=t.id||k;S.trips[t.id]=t;});
     saveAll(oldIds);ui.backupOpen=false;ui.banner='백업 파일에서 기록을 불러왔어요';render();}
 };
-function delCat(t,v){const k=catOf(t,v);if(!k||k.lock)return;
-  t.exps.forEach(e=>{if(e.cat===v)e.cat='기타';});t.cats=t.cats.filter(x=>x.n!==v);delete t.inc[v];
+function delCat(t,v){const m=!!(ui.draft&&ui.draft.mine),L=catsFor(t,m),k=L.find(c=>c.n===v);if(!k||k.lock)return;
+  t.exps.forEach(e=>{if(e.cat===v&&!!e.mine===m)e.cat='기타';});if(m)t.pcats=L.filter(x=>x.n!==v);else{t.cats=L.filter(x=>x.n!==v);delete t.inc[v];}
   if(ui.draft&&ui.draft.cat===v)ui.draft.cat='기타';saveTrip(t);render();}
 function delCur(v){S.profile.currencies=curList().filter(c=>c.k!==v);if(ui.rdraft&&ui.rdraft.k===v){const j=curFind('JPY');ui.rdraft={k:'JPY',b:j.b,w:'',u:j.u};}saveProfile();render();}
 
@@ -914,7 +944,7 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ---------- offline ---------- */
-const APP_VERSION='1.5';
+const APP_VERSION='1.7';
 ['gesturestart','gesturechange','gestureend'].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault(),{passive:false}));
 document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});
 try{if('serviceWorker' in navigator&&location.protocol==='https:'&&!/claude(usercontent)?\.(ai|com)$/.test(location.hostname)){
