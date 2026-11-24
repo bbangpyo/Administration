@@ -166,6 +166,7 @@ input[type=checkbox]{width:19px;height:19px;accent-color:var(--ac);margin:0;flex
 .payed button{padding:6px 10px;font-size:15px}
 .stat{border-radius:12px;padding:12px;margin-top:8px}
 .stat.bad{background:var(--badbg);color:var(--bad)}
+.stat.warn{background:var(--warnbg);color:var(--warn)}
 .stat.ok{background:var(--okbg);color:var(--ok);text-align:center}
 .stat .hl{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;font-size:17px}
 .stat .ln{display:flex;justify-content:space-between;font-size:15px;margin-top:6px;gap:8px}
@@ -271,8 +272,27 @@ function norm(t){t=t||{};
 
 /* ---------- storage ---------- */
 const LKEY='trip-treasurer-v2';
-function loadLocal(){try{const v=JSON.parse(localStorage.getItem(LKEY)||'null');if(v){S.profile=normProfile(v.profile);S.trips={};Object.keys(v.trips||{}).forEach(k=>S.trips[k]=norm(v.trips[k]));}}catch(e){}}
-function saveLocal(){try{localStorage.setItem(LKEY,JSON.stringify(S));}catch(e){ui.banner='기기 저장 공간에 저장하지 못했어요. 저장 공간을 확인해 주세요.';}}
+const BKEY=LKEY+'-broken-';
+let localLocked=false;
+const isObj=v=>!!v&&typeof v==='object'&&!Array.isArray(v);
+function brokenKeys(){const out=[];try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf(BKEY)===0)out.push(k);}}catch(e){}return out.sort();}
+function keepBroken(raw){
+  /* 읽지 못한 원본을 따로 보관해요. 보관도 못 하면 원본을 덮어쓰지 않도록 저장을 멈춰요 */
+  try{if(!brokenKeys().some(k=>localStorage.getItem(k)===raw))localStorage.setItem(BKEY+Date.now(),raw);
+    ui.banner='저장된 기록 일부를 읽지 못했어요. 원본은 따로 보관했고, 백업 화면에서 내보낼 수 있어요.';}
+  catch(e){localLocked=true;ui.banner='저장된 기록을 읽지 못했어요. 원본을 지키려고 새 변경 내용은 저장하지 않아요.';}}
+function loadLocal(){
+  let raw=null,bad=false;
+  try{raw=localStorage.getItem(LKEY);}catch(e){localLocked=true;ui.banner='기기에 저장된 기록을 열 수 없어요. 새 변경 내용은 저장되지 않아요.';return;}
+  if(raw===null)return;
+  let v=null;try{v=JSON.parse(raw);}catch(e){}
+  if(!isObj(v)){keepBroken(raw);return;}
+  try{S.profile=normProfile(v.profile);}catch(e){bad=true;}
+  S.trips={};
+  if(v.trips!=null&&!isObj(v.trips))bad=true;
+  else Object.keys(v.trips||{}).forEach(k=>{try{if(!isObj(v.trips[k]))throw 0;S.trips[k]=norm(v.trips[k]);}catch(e){bad=true;}});
+  if(bad)keepBroken(raw);}
+function saveLocal(){if(localLocked){ui.banner='기록을 읽지 못한 상태라 변경 내용이 저장되지 않았어요.';return;}try{localStorage.setItem(LKEY,JSON.stringify(S));}catch(e){ui.banner='기기 저장 공간에 저장하지 못했어요. 저장 공간을 확인해 주세요.';}}
 const writing=new Set(),dirty=new Map();
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function errMsg(e){const c=e&&e.code;
@@ -358,9 +378,18 @@ function fxSettle(t){
   const N=t.members.length,list=[];
   gx(t).forEach(e=>{if(!isFx(t,e.cat)||!e.payer)return;const payer=t.members.find(m=>m.id===e.payer);if(!payer||!N)return;
     const per=Math.round(krw(t,e)/N),got=e.got||{};
-    const rows=t.members.filter(m=>m.id!==e.payer).map(m=>{const g=Math.min(Number(got[m.id])||0,per);return {m,g,left:per-g};});
+    const rows=t.members.filter(m=>m.id!==e.payer).map(m=>{const raw=Number(got[m.id])||0,g=Math.min(raw,per);return {m,g,left:per-g,over:raw-g};});
     list.push({e,payer,per,rows});});
   return list;}
+function moneyOf(t,mid){
+  /* 이 멤버에게 남아 있는 돈 기록 (있으면 여행에서 뺄 수 없어요) */
+  const out=[];
+  if(t.rounds.some(r=>paidOf(r,mid)>0))out.push('낸 회비');
+  if(gx(t).some(e=>e.payer===mid&&isFx(t,e.cat)))out.push('결제한 지출');
+  if(gx(t).some(e=>e.payer&&isFx(t,e.cat)&&Number((e.got||{})[mid])>0))out.push('보낸 정산 금액');
+  if(t.refunded[mid])out.push('돌려준 돈 체크');
+  return out;}
+function orphanPaid(t){let s=0;t.rounds.forEach(r=>Object.keys(r.paid).forEach(id=>{if(!t.members.some(m=>m.id===id))s+=paidOf(r,id);}));return s;}
 function legText(g){return [g.from||'?'].concat((g.stops||[]).filter(Boolean)).concat([g.to||'?']).join(' → ');}
 function expSub(t,e){
   if(e.cat==='숙소'&&e.ci&&e.co){const n=Math.round((D(e.co)-D(e.ci))/DAY);return md(e.ci)+' – '+md(e.co)+' · '+n+'박';}
@@ -412,6 +441,7 @@ function vBackup(){const ago=backupAgo();
   if(ui.restore)h+='<div class="confirm">백업 파일의 기록으로 바꿀까요?<small>여행 '+Object.keys(ui.restore.trips||{}).length+'개가 들어 있어요. 지금 앱에 있는 기록은 백업 파일 내용으로 바뀌어요.</small><div class="btns"><button data-a="restore-no">취소</button><button class="danger" data-a="restore-yes">불러오기</button></div></div>';
   h+='<div class="btns"><button data-a="backup-save">'+ic('upload',16)+'iCloud에 백업</button><label for="restoreIn">'+ic('download',16)+'백업 불러오기</label></div><input type="file" id="restoreIn" class="vh" accept="application/json,.json">';
   h+='<p class="note">"iCloud에 백업"을 누르고 공유 창에서 <b>파일에 저장 → iCloud Drive</b>를 고르세요. 새 폰에서는 "백업 불러오기"로 그 파일을 고르면 기록이 그대로 돌아와요.</p>';
+  if(mode==='local'&&brokenKeys().length)h+='<p class="warnbox">읽지 못해 따로 보관한 원본이 '+brokenKeys().length+'개 있어요.</p><button class="wide" data-a="broken-save">'+ic('upload',16)+'보관한 원본 내보내기</button>';
   if(ui.err)h+='<p class="err">'+esc(ui.err)+'</p>';
   return h+'</div>';}
 
@@ -538,6 +568,8 @@ function vDues(t,c){
   if(!c.N)return '<p class="empty">멤버가 없어요. 오른쪽 위 설정에서 멤버를 추가해 주세요.</p>';
   const m=v=>mon(t,v,false);
   let h=viewToggle(t);
+  const orp=orphanPaid(t);
+  if(orp)h+='<p class="warnbox" style="margin:0 0 10px">여행에서 빠진 멤버가 낸 회비 '+won(orp)+'원이 계산에서 빠져 있어요. 여행 설정에서 그 멤버를 다시 추가하면 포함돼요.</p>';
   h+='<div class="paidbox"><span style="font-size:15px;color:var(--tx2)">걷은 금액</span><span><b style="font-size:20px">'+m(c.paid)+'</b><span style="font-size:14px;color:var(--tx2)"> / '+m(c.due)+'</span></span></div>';
   if(t.rounds.length){const un=t.members.filter(x=>c.unpaid[x.id]>0);
     if(un.length){h+='<div class="stat bad"><div class="hl"><span>'+ic('alert',16)+' 미납 '+un.length+'명</span><span>'+m(c.due-c.paid)+'</span></div>';
@@ -600,7 +632,7 @@ function vTrip(){
 
 /* ---------- views: expense form ---------- */
 function vSettle(t){
-  const L=fxSettle(t),fxNoPayer=gx(t).filter(e=>isFx(t,e.cat)&&!e.payer).length;
+  const L=fxSettle(t),fxNoPayer=gx(t).filter(e=>isFx(t,e.cat)&&!t.members.some(m=>m.id===e.payer)).length;
   if(!L.length&&!fxNoPayer)return '';
   const W=v=>won(v)+'원';
   let h='<p class="sect" style="margin-top:26px">숙박비 · 항공권 정산</p>';
@@ -609,18 +641,22 @@ function vSettle(t){
   const un=Object.values(owe);
   if(un.length){const tot=un.reduce((a,o)=>a+o.sum,0);h+='<div class="stat bad" style="margin-top:0"><div class="hl"><span>'+ic('alert',16)+' 미납 '+un.length+'명</span><span>'+W(tot)+'</span></div>';
     un.forEach(o=>{h+='<div class="ln"><span>'+esc(o.m.name)+' · '+o.items.join(', ')+'</span><span>'+W(o.sum)+' 남음</span></div>';});h+='</div>';}
-  else h+='<div class="stat ok" style="margin-top:0"><p style="font-size:19px;font-weight:700">'+ic('ok',18)+' 전원 완납</p><p style="font-size:15px;margin-top:2px">숙박비·항공권을 모두 보냈어요</p></div>';
+  const ov=[];L.forEach(x=>x.rows.forEach(r=>{if(r.over>0)ov.push({x,r});}));
+  if(ov.length){h+='<div class="stat warn"'+(un.length?'':' style="margin-top:0"')+'><div class="hl"><span>'+ic('alert',16)+' 더 보낸 돈 '+ov.length+'건</span><span>'+W(ov.reduce((a,o)=>a+o.r.over,0))+'</span></div>';
+    ov.forEach(o=>{h+='<div class="ln"><span>'+esc(o.r.m.name)+' · '+esc(o.x.e.cat)+'</span><span>'+esc(o.x.payer.name)+'님이 '+W(o.r.over)+' 돌려주기</span></div>';});
+    h+='<p class="hint" style="margin:6px 0 0;color:inherit">돌려준 뒤 아래에서 금액을 눌러 실제로 받은 금액으로 고쳐 주세요.</p></div>';}
+  if(!un.length&&!ov.length)h+='<div class="stat ok" style="margin-top:0"><p style="font-size:19px;font-weight:700">'+ic('ok',18)+' 전원 완납</p><p style="font-size:15px;margin-top:2px">숙박비·항공권을 모두 보냈어요</p></div>';
   L.forEach(x=>{const n=x.rows.filter(r=>r.left<=0).length,all=x.rows.length,full=n===all;
     h+='<div class="sec"><div class="sech"><span class="n">'+esc(x.e.cat)+' · '+esc(x.e.memo||(x.e.fl?{out:'가는 편',back:'오는 편',rt:'왕복'}[x.e.fl.type]:x.e.cat))+'</span><span style="font-size:14px" class="'+(full?'okc':'badc')+'">'+(full?'완납':n+'/'+all)+'</span></div>';
     h+='<p class="hint" style="margin:0 0 4px">'+esc(x.payer.name)+'님이 결제 · 인당 '+W(x.per)+'</p>';
     x.rows.forEach(r=>{const key='x:'+x.e.id+'|'+r.m.id,full2=r.left<=0;
       h+='<div class="mr"><label><input type="checkbox" data-c="got" data-v="'+esc(x.e.id+'|'+r.m.id)+'"'+(full2?' checked':'')+'>'+esc(r.m.name)+'</label>';
-      if(ui.payEdit===key)h+='<span class="payed"><input class="inp" id="payIn" type="text" inputmode="numeric" value="'+(r.g?won(r.g):'')+'" placeholder="낸 금액"><span>원</span><button data-a="pay-save">저장</button></span>';
-      else h+='<button class="paybtn '+(full2?'okc':r.g>0?'partc':'badc')+'" data-a="pay-edit" data-v="'+esc(key)+'">'+(full2?'납부':r.g>0?W(r.left)+' 남음':'미납')+'</button>';
+      if(ui.payEdit===key)h+='<span class="payed"><input class="inp" id="payIn" type="text" inputmode="numeric" value="'+(r.g?won(r.g+r.over):'')+'" placeholder="낸 금액"><span>원</span><button data-a="pay-save">저장</button></span>';
+      else h+='<button class="paybtn '+(r.over>0?'partc':full2?'okc':r.g>0?'partc':'badc')+'" data-a="pay-edit" data-v="'+esc(key)+'">'+(r.over>0?W(r.over)+' 더 보냄':full2?'납부':r.g>0?W(r.left)+' 남음':'미납')+'</button>';
       h+='</div>';});
     if(ui.payEdit&&ui.payEdit.indexOf('x:'+x.e.id+'|')===0)h+='<p class="hint">실제로 보낸 금액을 넣어 주세요. 인당 '+W(x.per)+'보다 적으면 남은 금액이 표시돼요.</p>'+(ui.err?'<p class="err">'+esc(ui.err)+'</p>':'');
     h+='</div>';});
-  if(fxNoPayer)h+='<p class="note">결제한 사람을 아직 안 고른 고정 지출이 '+fxNoPayer+'건 있어요.</p>';
+  if(fxNoPayer)h+='<p class="note">결제한 사람이 없거나 여행에서 빠진 고정 지출이 '+fxNoPayer+'건 있어요.</p>';
   return h;}
 function vExpForm(){
   const t=cur();if(!t){ui.view='list';return vList();}
@@ -783,6 +819,8 @@ const A={
     if(!d.start||!d.end){ui.err='기간을 입력해 주세요';render();return;}
     if(D(d.end)<D(d.start)){ui.err='끝나는 날이 시작하는 날보다 빨라요';render();return;}
     if(!d.sel.length){ui.err='멤버를 한 명 이상 골라 주세요';render();return;}
+    if(ui.view==='settings'){const tt=cur(),gone=tt.members.filter(m=>d.sel.indexOf(m.id)<0).map(m=>({m,why:moneyOf(tt,m.id)})).filter(x=>x.why.length);
+      if(gone.length){ui.err=gone.map(x=>x.m.name+'님은 '+x.why.join(', ')+' 기록이 있어 뺄 수 없어요').join('. ')+'. 먼저 그 기록을 지우거나 바꿔 주세요.';render();return;}}
     let rt=null;
     if(d.kind==='abroad'){const old=ui.view==='settings'?cur():null;
       const needW=old&&old.kind==='abroad'&&old.cur.k===ui.rdraft.k&&hasF(old);
@@ -870,10 +908,11 @@ const A={
   'round-del-yes'(){const t=cur();t.rounds=t.rounds.filter(r=>r.id!==ui.delRound);ui.delRound=null;saveTrip(t);render();},
   'backup'(){ui.backupOpen=!ui.backupOpen;ui.restore=null;ui.err='';render();top0();},
   'backup-save'(){doBackup();},
+  'broken-save'(){saveBroken();},
   'restore-no'(){ui.restore=null;render();},
   'restore-yes'(){const v=ui.restore;ui.restore=null;const oldIds=Object.keys(S.trips);
     S.profile=normProfile(v.profile);S.profile.lastBackup=S.profile.lastBackup||Date.now();S.trips={};Object.keys(v.trips||{}).forEach(k=>{const t=norm(v.trips[k]);t.id=t.id||k;S.trips[t.id]=t;});
-    saveAll(oldIds);ui.backupOpen=false;ui.banner='백업 파일에서 기록을 불러왔어요';render();}
+    saveAll(oldIds);ui.backupOpen=false;if(!localLocked)ui.banner='백업 파일에서 기록을 불러왔어요';render();}
 };
 function delCat(t,v){const m=!!(ui.draft&&ui.draft.mine),L=catsFor(t,m),k=L.find(c=>c.n===v);if(!k||k.lock)return;
   t.exps.forEach(e=>{if(e.cat===v&&!!e.mine===m)e.cat='기타';});if(m)t.pcats=L.filter(x=>x.n!==v);else{t.cats=L.filter(x=>x.n!==v);delete t.inc[v];}
@@ -886,11 +925,19 @@ async function doBackup(){
   const data=JSON.stringify({app:'trip-treasurer',v:2,exported:stamp.toISOString(),profile:S.profile,trips:S.trips});
   ui.err='';
   try{
-    const file=new File([data],name,{type:'application/json'});
-    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'여행 총무 백업'});}
-    else{const url=URL.createObjectURL(file);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);}
+    await shareFile(name,data,'여행 총무 백업');
     S.profile.lastBackup=Date.now();saveProfile();ui.banner='백업 파일을 만들었어요. iCloud Drive에 저장했는지 확인해 주세요.';ui.backupOpen=false;render();
   }catch(e){if(e&&e.name==='AbortError')return;ui.err='이 화면에서는 백업 파일을 만들 수 없어요. 홈 화면에 추가한 앱에서 다시 시도해 주세요.';render();}
+}
+async function shareFile(name,data,title){
+  const file=new File([data],name,{type:'application/json'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title});}
+  else{const url=URL.createObjectURL(file);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);}}
+async function saveBroken(){
+  ui.err='';
+  try{const data=JSON.stringify({app:'trip-treasurer-broken',items:brokenKeys().map(k=>({key:k,raw:localStorage.getItem(k)}))});
+    await shareFile('trip-treasurer-original.json',data,'여행 총무 원본');
+  }catch(e){if(e&&e.name==='AbortError')return;ui.err='이 화면에서는 파일을 만들 수 없어요. 홈 화면에 추가한 앱에서 다시 시도해 주세요.';render();}
 }
 function readRestore(file){
   const fr=new FileReader();
@@ -944,7 +991,7 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ---------- offline ---------- */
-const APP_VERSION='1.7';
+const APP_VERSION='1.8';
 ['gesturestart','gesturechange','gestureend'].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault(),{passive:false}));
 document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});
 try{if('serviceWorker' in navigator&&location.protocol==='https:'&&!/claude(usercontent)?\.(ai|com)$/.test(location.hostname)){
