@@ -513,23 +513,30 @@ function vTripForm(){
 }
 
 /* ---------- views: trip ---------- */
-function fxChecks(t){const f=t.cats.filter(c=>c.fx);if(!f.length)return '';
-  return '<div class="fx">'+f.map(c=>'<label><input type="checkbox" data-c="inc" data-v="'+esc(c.n)+'"'+(t.inc[c.n]?' checked':'')+'>'+esc(fxLabel(c.n))+'</label>').join('')+'</div>';}
+function fxChecks(t,onlyF){const f=t.cats.filter(c=>c.fx);if(!f.length)return '';
+  return '<div class="fx">'+f.map(c=>{const off=onlyF&&!gx(t).some(e=>e.cat===c.n&&e.cur==='F');return '<label'+(off?' style="opacity:.4"':'')+'><input type="checkbox" data-c="inc" data-v="'+esc(c.n)+'"'+(t.inc[c.n]?' checked':'')+(off?' disabled':'')+'>'+esc(fxLabel(c.n))+'</label>';}).join('')+'</div>';}
 function viewToggle(t){if(t.kind!=='abroad')return '';return '<div class="tgrow"><span class="rt">'+esc(rateText(t))+'</span>'+pill('fview',isF(t),'원화','외화','외화로 보기')+'</div>';}
+function homeSums(t,c){
+  /* 외화 보기: 원화로 결제한 건은 쓴 금액에서 빼고, 회비로 낸 원화만큼 걷은 금액에서도 빼요 (남은 금액은 그대로) */
+  if(!isF(t))return {collected:c.collected,spent:c.spent,total:c.total,mine:mineSum(t),kOut:0};
+  const sum=L=>L.reduce((a,e)=>a+krw(t,e),0),F=gx(t).filter(e=>e.cur==='F'),fix=F.filter(e=>isFx(t,e.cat)),day=F.filter(e=>!isFx(t,e.cat));
+  const inc=sum(fix.filter(e=>t.inc[e.cat])),kOut=sum(gx(t).filter(e=>e.cur!=='F'&&!isFx(t,e.cat)));
+  return {collected:Math.max(0,c.paid-kOut)+inc,spent:sum(day)+inc,total:sum(F),mine:sum(mx(t).filter(e=>e.cur==='F')),kOut};}
 function vHome(t,c){
-  const pp=v=>'인당 '+won(c.per(v))+'원';
-  let h=fxChecks(t);
-  h+='<div class="sum"><div class="box"><p class="l">걷은 금액</p><p class="v">'+won(c.collected)+'원</p><p class="p">'+pp(c.collected)+'</p></div>';
-  h+='<div class="box"><p class="l">쓴 금액</p><p class="v">'+won(c.spent)+'원</p><p class="p">'+pp(c.spent)+'</p></div>';
-  h+='<div class="box rem"><p class="l">남은 금액</p><p class="v">'+won(c.remain)+'원</p><p class="p">'+pp(c.remain)+'</p>'+(hasFR(t)&&rateOf(t)?'<p class="p">≈ '+fnum(t,c.remain/rateOf(t))+esc(t.cur.u)+'</p>':'')+'</div></div>';
+  const f=isF(t),hs=homeSums(t,c),m=v=>mon(t,Math.abs(v)<1e-6?0:v,false),pp=v=>'인당 '+m(c.per(v));
+  let h=fxChecks(t,f)+viewToggle(t);
+  h+='<div class="sum"><div class="box"><p class="l">걷은 금액</p><p class="v">'+m(hs.collected)+'</p><p class="p">'+pp(hs.collected)+'</p></div>';
+  h+='<div class="box"><p class="l">쓴 금액</p><p class="v">'+m(hs.spent)+'</p><p class="p">'+pp(hs.spent)+'</p></div>';
+  h+='<div class="box rem"><p class="l">남은 금액</p><p class="v">'+m(c.remain)+'</p><p class="p">'+pp(c.remain)+'</p>'+(!f&&hasFR(t)&&rateOf(t)?'<p class="p">≈ '+fnum(t,c.remain/rateOf(t))+esc(t.cur.u)+'</p>':'')+'</div></div>';
+  if(f&&t.exps.some(e=>e.cur!=='F'))h+='<p class="note">외화로 볼 때는 원화로 결제한 지출을 빼고 보여요.'+(hs.kOut>0?(hs.kOut>c.paid?' 회비로 쓴 원화 '+won(hs.kOut)+'원이 걷은 회비보다 많아서 남은 금액이 모자라요.':' 회비로 쓴 원화 '+won(hs.kOut)+'원(≈ '+m(hs.kOut)+')은 걷은 금액에서 뺐어요.'):'')+'</p>';
   if(!c.N)h+='<p class="note">멤버가 없어 인당 금액을 계산할 수 없어요. 오른쪽 위 설정에서 멤버를 추가해 주세요.</p>';
-  const share=c.N?c.total/c.N:0,ms=mineSum(t);
-  h+='<div class="mycard"><div class="mh"><span>'+ic('user',16)+' 내 총 지출</span><span class="lk">'+ic('lock',12)+' 나만 봐요</span></div><p class="mv">'+won(share+ms)+'원</p>';
-  h+='<div class="ml"><span>내 몫 ('+(c.N?'1/'+c.N:'–')+')</span><span>'+won(share)+'원</span></div><div class="ml"><span>나만 쓴 돈</span><span>'+won(ms)+'원</span></div></div>';
-  const rec=t.exps.slice().sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,5);
+  const share=c.N?hs.total/c.N:0,ms=hs.mine;
+  h+='<div class="mycard"><div class="mh"><span>'+ic('user',16)+' 내 총 지출'+(f?' (외화 결제만)':'')+'</span><span class="lk">'+ic('lock',12)+' 나만 봐요</span></div><p class="mv">'+m(share+ms)+'</p>';
+  h+='<div class="ml"><span>내 몫 ('+(c.N?'1/'+c.N:'–')+')</span><span>'+m(share)+'</span></div><div class="ml"><span>나만 쓴 돈</span><span>'+m(ms)+'</span></div></div>';
+  const rec=t.exps.filter(e=>!f||e.cur==='F').sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,5);
   h+='<p class="sect">최근 지출</p>';
-  if(!rec.length)h+='<p class="empty">아직 지출이 없어요</p>';
-  else h+='<div class="list">'+rec.map(e=>'<div class="it" data-a="exp-open" data-v="'+esc(e.id)+'"><span class="m">'+(e.mine?'<span class="tag mt">나만</span>':'')+'<span class="tag">'+esc(e.cat)+'</span>'+esc(e.memo||e.cat)+'</span><span class="v">'+(e.cur==='F'?'<span class="tag">'+fnum(t,e.famt)+esc(t.cur.u)+'</span>':'')+won(krw(t,e))+'원</span></div>').join('')+'</div>';
+  if(!rec.length)h+='<p class="empty">'+(f&&t.exps.length?'외화로 결제한 지출이 없어요':'아직 지출이 없어요')+'</p>';
+  else h+='<div class="list">'+rec.map(e=>'<div class="it" data-a="exp-open" data-v="'+esc(e.id)+'"><span class="m">'+(e.mine?'<span class="tag mt">나만</span>':'')+'<span class="tag">'+esc(e.cat)+'</span>'+esc(e.memo||e.cat)+'</span><span class="v">'+(f?rowMon(t,e,false):(e.cur==='F'?'<span class="tag">'+fnum(t,e.famt)+esc(t.cur.u)+'</span>':'')+won(krw(t,e))+'원')+'</span></div>').join('')+'</div>';
   return h;
 }
 function expRow(t,e,x,fixed){const sub=fixed?expSub(t,e):'';const py=fixed&&e.payer?t.members.find(m=>m.id===e.payer):null;
@@ -1014,7 +1021,7 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ---------- offline ---------- */
-const APP_VERSION='1.9';
+const APP_VERSION='1.10';
 ['gesturestart','gesturechange','gestureend'].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault(),{passive:false}));
 document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});
 try{if('serviceWorker' in navigator&&location.protocol==='https:'&&!/claude(usercontent)?\.(ai|com)$/.test(location.hostname)){
