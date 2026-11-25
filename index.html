@@ -159,6 +159,7 @@ input[type=checkbox]{width:19px;height:19px;accent-color:var(--ac);margin:0;flex
 .sech .s{font-weight:400;font-size:14px;color:var(--tx2);margin-left:4px}
 .mr{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-top:0.5px solid var(--line);font-size:16px;gap:8px}
 .mr label{display:flex;align-items:center;gap:10px;min-width:0}
+.pdone{text-decoration:line-through;color:var(--tx3)}
 .okc{color:var(--ok)}.badc{color:var(--bad)}.partc{color:var(--warn)}
 .paybtn{border:none;background:none;padding:4px 0;font-size:15px;text-decoration:underline;text-decoration-color:var(--line2);text-underline-offset:3px}
 .payed{display:flex;align-items:center;gap:4px;font-size:15px}
@@ -249,7 +250,7 @@ const S={profile:{members:[],currencies:clone(DEF_CUR),lastBackup:null},trips:{}
 const ui={view:'list',listTab:'dom',tripId:null,tab:'home',sub:'list',listEdit:false,delTrip:null,statusOpen:null,
   draft:null,expId:null,catEdit:false,catAdding:false,catAsk:null,delExp:false,
   tdraft:null,rdraft:null,memEdit:false,memAdding:false,curEdit:false,curAdding:false,curAsk:null,
-  roundAdding:false,delRound:null,payEdit:null,rateEdit:false,calc:{dir:0,val:''},
+  roundAdding:false,roundCur:'K',delRound:null,payEdit:null,rateEdit:false,calc:{dir:0,val:''},
   backupOpen:false,restore:null,err:'',banner:'',loading:true,focus:null};
 try{const lt=localStorage.getItem('tt-listTab');if(lt==='abroad')ui.listTab='abroad';}catch(e){}
 let mode='loading',col=null,pendingRender=false;
@@ -263,7 +264,7 @@ function normProfile(p){p=p||{};p.members=Array.isArray(p.members)?p.members:[];
 function norm(t){t=t||{};
   t.members=Array.isArray(t.members)?t.members:[];t.cats=Array.isArray(t.cats)&&t.cats.length?t.cats:defaultCats();t.pcats=Array.isArray(t.pcats)&&t.pcats.length?t.pcats:defaultPCats();
   t.exps=Array.isArray(t.exps)?t.exps:[];t.exps.forEach(e=>{if(e.cur!=='F')e.cur='K';});
-  t.rounds=Array.isArray(t.rounds)?t.rounds:[];t.rounds.forEach(r=>{r.paid=r.paid&&typeof r.paid==='object'?r.paid:{};Object.keys(r.paid).forEach(k=>{const v=Number(r.paid[k]);if(v===1&&r.amt>1)r.paid[k]=r.amt;else if(!(v>0))delete r.paid[k];else r.paid[k]=Math.min(v,r.amt);});});
+  t.rounds=Array.isArray(t.rounds)?t.rounds:[];t.rounds.forEach(r=>{r.cur=r.cur==='F'?'F':'K';r.paid=r.paid&&typeof r.paid==='object'?r.paid:{};Object.keys(r.paid).forEach(k=>{const v=Number(r.paid[k]);if(v===1&&r.amt>1&&r.cur!=='F')r.paid[k]=r.amt;else if(!(v>0))delete r.paid[k];else r.paid[k]=Math.min(v,r.amt);});});
   t.refunded=t.refunded&&typeof t.refunded==='object'?t.refunded:{};t.inc=t.inc&&typeof t.inc==='object'?t.inc:{};
   if(!(t.status===0||t.status===1||t.status===2))t.status=null;
   t.kind=t.kind==='abroad'?'abroad':'dom';
@@ -345,15 +346,26 @@ const cur=()=>S.trips[ui.tripId];
 const curList=()=>S.profile.currencies;
 const curFind=k=>curList().find(c=>c.k===k);
 function rateOf(t){return t&&t.kind==='abroad'&&t.rate&&t.rate.w>0&&t.rate.b>0?t.rate.w/t.rate.b:0;}
-function krw(t,e){return e.cur==='F'?Math.round((e.famt||0)*rateOf(t)):(e.amt||0);}
+function krwR(t,e){return e.cur==='F'?Math.round((e.famt||0)*rateOf(t)):(e.amt||0);}
+/* 외화 보기에서는 원 단위로 반올림하지 않아야 현지 통화 합계가 딱 맞아요 */
+function krw(t,e){return e.cur==='F'&&isF(t)?(e.famt||0)*rateOf(t):krwR(t,e);}
+function hasFR(t){return t.kind==='abroad'&&t.rounds.some(r=>r.cur==='F');}
+function rk(t,r,v){return r.cur==='F'?v*rateOf(t):v;}
+function rn(t,r,v){return r.cur==='F'?fnum(t,v)+esc(t.cur.u):won(v)+'원';}
+function rv(t,r,v){return r.cur==='F'?rn(t,r,v):mon(t,v,false);}
+function fCnt(t){const a=t.exps.filter(e=>e.cur==='F').length,b=t.rounds.filter(r=>r.cur==='F').length;return [a?'지출 '+a+'건':'',b?'회비 '+b+'건':''].filter(Boolean).join(', ');}
+function fIn(t,v){const dec=decOf(t.cur);let raw=String(v).replace(/[^0-9.]/g,'');if(!dec)raw=raw.replace(/\./g,'');
+  const q=raw.split('.'),ip=q[0]?Math.min(Number(q[0]),9999999999):0,f=q.length>1?q[1].slice(0,2):null;
+  return {n:Number(ip+(f?'.'+f:''))||0,s:(q[0]?nf(ip,0):(f!==null?'0':''))+(f!==null?'.'+f:'')};}
 function decOf(c){return c&&c.b>=100?0:2;}
 function fnum(t,v){return nf(v,decOf(t.cur));}
 function isF(t){return t.kind==='abroad'&&t.fview&&rateOf(t)>0;}
 function mon(t,v,fixed){if(isF(t)&&!fixed)return fnum(t,v/rateOf(t))+esc(t.cur.u);return won(v)+'원';}
 function rowMon(t,e,fixed){if(isF(t)&&!fixed&&e.cur==='F')return fnum(t,e.famt)+esc(t.cur.u);return mon(t,krw(t,e),fixed);}
 function rateText(t){if(!rateOf(t))return '환율 미설정';return nf(t.rate.b,2)+t.cur.u+' = '+nf(t.rate.w,2)+'원';}
-function hasF(t){return t.exps.some(e=>e.cur==='F');}
-function toKRW(t,r){t.exps.forEach(e=>{if(e.cur==='F'){e.amt=Math.round((e.famt||0)*r);e.cur='K';delete e.famt;}});}
+function hasF(t){return t.exps.some(e=>e.cur==='F')||t.rounds.some(r=>r.cur==='F');}
+function toKRW(t,r){t.exps.forEach(e=>{if(e.cur==='F'){e.amt=Math.round((e.famt||0)*r);e.cur='K';delete e.famt;}});
+  t.rounds.forEach(x=>{if(x.cur==='F'){x.amt=Math.round(x.amt*r);Object.keys(x.paid).forEach(k=>{x.paid[k]=Math.min(Math.round(x.paid[k]*r),x.amt);if(!(x.paid[k]>0))delete x.paid[k];});x.cur='K';}});}
 
 /* ---------- calculations ---------- */
 const now=()=>D(todayStr());
@@ -369,7 +381,7 @@ function calc(t){
   gx(t).forEach(e=>{const a=krw(t,e);if(isFx(t,e.cat)){fixedBy[e.cat]=(fixedBy[e.cat]||0)+a;allFixed+=a;}else nonfx+=a;});
   let inc=0;Object.keys(fixedBy).forEach(c=>{if(t.inc[c])inc+=fixedBy[c];});
   let paid=0,due=0;const unpaid={};
-  t.rounds.forEach(r=>t.members.forEach(m=>{const pa=paidOf(r,m.id);due+=r.amt;paid+=pa;if(pa<r.amt)unpaid[m.id]=(unpaid[m.id]||0)+r.amt-pa;}));
+  t.rounds.forEach(r=>t.members.forEach(m=>{const pa=paidOf(r,m.id);due+=rk(t,r,r.amt);paid+=rk(t,r,pa);if(pa<r.amt)unpaid[m.id]=(unpaid[m.id]||0)+rk(t,r,r.amt-pa);}));
   return {N,per,nonfx,allFixed,fixedBy,inc,paid,due,unpaid,collected:paid+inc,spent:nonfx+inc,remain:paid-nonfx,total:nonfx+allFixed};
 }
 function paidOf(r,mid){const v=Number(r.paid[mid])||0;return Math.min(v,r.amt);}
@@ -377,7 +389,7 @@ function fxSettle(t){
   /* 숙박비·항공권처럼 한 사람이 결제한 고정 지출의 정산 현황 */
   const N=t.members.length,list=[];
   gx(t).forEach(e=>{if(!isFx(t,e.cat)||!e.payer)return;const payer=t.members.find(m=>m.id===e.payer);if(!payer||!N)return;
-    const per=Math.round(krw(t,e)/N),got=e.got||{};
+    const per=Math.round(krwR(t,e)/N),got=e.got||{};
     const rows=t.members.filter(m=>m.id!==e.payer).map(m=>{const raw=Number(got[m.id])||0,g=Math.min(raw,per);return {m,g,left:per-g,over:raw-g};});
     list.push({e,payer,per,rows});});
   return list;}
@@ -389,7 +401,7 @@ function moneyOf(t,mid){
   if(gx(t).some(e=>e.payer&&isFx(t,e.cat)&&Number((e.got||{})[mid])>0))out.push('보낸 정산 금액');
   if(t.refunded[mid])out.push('돌려준 돈 체크');
   return out;}
-function orphanPaid(t){let s=0;t.rounds.forEach(r=>Object.keys(r.paid).forEach(id=>{if(!t.members.some(m=>m.id===id))s+=paidOf(r,id);}));return s;}
+function orphanPaid(t){let s=0;t.rounds.forEach(r=>Object.keys(r.paid).forEach(id=>{if(!t.members.some(m=>m.id===id))s+=rk(t,r,paidOf(r,id));}));return s;}
 function legText(g){return [g.from||'?'].concat((g.stops||[]).filter(Boolean)).concat([g.to||'?']).join(' → ');}
 function expSub(t,e){
   if(e.cat==='숙소'&&e.ci&&e.co){const n=Math.round((D(e.co)-D(e.ci))/DAY);return md(e.ci)+' – '+md(e.co)+' · '+n+'박';}
@@ -484,10 +496,10 @@ function vTripForm(){
   const d=ui.tdraft,isNew=ui.view==='new',t=isNew?null:cur();
   let h='<div class="hdr"><div class="ttl"><button class="bare" data-a="'+(isNew?'go-list':'go-trip')+'" aria-label="닫기">'+ic(isNew?'x':'left',22)+'</button><h2 class="h2">'+(isNew?'새 여행':'여행 설정')+'</h2></div></div>'+bannerH();
   h+='<p class="lb" style="margin-top:0">여행 종류</p><div class="seg" style="margin:0"><button class="'+(d.kind==='dom'?'on':'')+'" data-a="t-kind" data-v="dom">'+KIND.dom+'</button><button class="'+(d.kind==='abroad'?'on':'')+'" data-a="t-kind" data-v="abroad">'+KIND.abroad+'</button></div>';
-  if(t&&t.kind==='abroad'&&d.kind==='dom'){const n=t.exps.filter(e=>e.cur==='F').length;
-    h+='<div class="warnbox"><p style="font-weight:600">'+ic('alert',14)+' 국내 여행으로 바꾸면</p>'+(n?'<p>· '+esc(t.cur.n)+'로 입력한 지출 '+n+'건이 지금 환율('+esc(rateText(t))+')로 원화로 바뀌어 저장돼요.</p>':'')+'<p>· 환율 탭과 원화/외화 보기 버튼이 없어져요.</p><p>· 여행 목록에서 국내 여행 탭으로 옮겨져요.</p></div>';}
+  if(t&&t.kind==='abroad'&&d.kind==='dom'){const n=fCnt(t);
+    h+='<div class="warnbox"><p style="font-weight:600">'+ic('alert',14)+' 국내 여행으로 바꾸면</p>'+(n?'<p>· '+esc(t.cur.n)+'로 입력한 '+n+'이 지금 환율('+esc(rateText(t))+')로 원화로 바뀌어 저장돼요.</p>':'')+'<p>· 환율 탭과 원화/외화 보기 버튼이 없어져요.</p><p>· 여행 목록에서 국내 여행 탭으로 옮겨져요.</p></div>';}
   if(d.kind==='abroad'){h+='<div class="fxbox">'+curPicker();
-    if(t&&t.kind==='abroad'&&t.cur.k!==ui.rdraft.k&&hasF(t))h+='<p class="warnbox" style="margin-top:10px">통화를 바꾸면 '+esc(t.cur.n)+'로 입력한 지출 '+t.exps.filter(e=>e.cur==='F').length+'건은 지금 환율로 원화로 바뀌어 저장돼요.</p>';
+    if(t&&t.kind==='abroad'&&t.cur.k!==ui.rdraft.k&&hasF(t))h+='<p class="warnbox" style="margin-top:10px">통화를 바꾸면 '+esc(t.cur.n)+'로 입력한 '+fCnt(t)+'은 지금 환율로 원화로 바뀌어 저장돼요.</p>';
     h+='<p class="hint">환율은 비워뒀다가 나중에 환율 탭에서 넣어도 돼요</p></div>';
     if(t&&t.kind==='dom')h+='<p class="hint">저장하면 하단에 환율 탭이 생겨요</p>';}
   h+='<p class="lb">여행 이름</p><input class="inp" type="text" data-f="t.name" value="'+esc(d.name)+'" placeholder="'+(d.kind==='abroad'?'오사카 여행':'부산 여행')+'" maxlength="30">';
@@ -509,7 +521,7 @@ function vHome(t,c){
   let h=fxChecks(t);
   h+='<div class="sum"><div class="box"><p class="l">걷은 금액</p><p class="v">'+won(c.collected)+'원</p><p class="p">'+pp(c.collected)+'</p></div>';
   h+='<div class="box"><p class="l">쓴 금액</p><p class="v">'+won(c.spent)+'원</p><p class="p">'+pp(c.spent)+'</p></div>';
-  h+='<div class="box rem"><p class="l">남은 금액</p><p class="v">'+won(c.remain)+'원</p><p class="p">'+pp(c.remain)+'</p></div></div>';
+  h+='<div class="box rem"><p class="l">남은 금액</p><p class="v">'+won(c.remain)+'원</p><p class="p">'+pp(c.remain)+'</p>'+(hasFR(t)&&rateOf(t)?'<p class="p">≈ '+fnum(t,c.remain/rateOf(t))+esc(t.cur.u)+'</p>':'')+'</div></div>';
   if(!c.N)h+='<p class="note">멤버가 없어 인당 금액을 계산할 수 없어요. 오른쪽 위 설정에서 멤버를 추가해 주세요.</p>';
   const share=c.N?c.total/c.N:0,ms=mineSum(t);
   h+='<div class="mycard"><div class="mh"><span>'+ic('user',16)+' 내 총 지출</span><span class="lk">'+ic('lock',12)+' 나만 봐요</span></div><p class="mv">'+won(share+ms)+'원</p>';
@@ -576,21 +588,24 @@ function vDues(t,c){
       un.forEach(x=>{const rs=t.rounds.filter(r=>paidOf(r,x.id)<r.amt).map(r=>esc(roundShort(t,r))+(paidOf(r,x.id)>0?' 일부':''));h+='<div class="ln"><span>'+esc(x.name)+' · '+rs.join(', ')+'</span><span>'+m(c.unpaid[x.id])+' 남음</span></div>';});h+='</div>';}
     else h+='<div class="stat ok"><p style="font-size:19px;font-weight:700">'+ic('ok',18)+' 전원 완납</p><p style="font-size:15px;margin-top:2px">'+c.N+'명 모두 회비를 냈어요</p></div>';}
   t.rounds.forEach(r=>{const n=t.members.filter(x=>paidOf(r,x.id)>=r.amt).length,full=n===c.N;
-    h+='<div class="sec"><div class="sech"><span class="n">'+esc(r.name)+'<span class="s">'+md(r.date)+' · 인당 '+m(r.amt)+'</span></span><span style="display:flex;align-items:center;gap:6px"><span style="font-size:14px" class="'+(full?'okc':'badc')+'">'+(full?'완납':n+'/'+c.N)+'</span><button class="bare" data-a="round-del" data-v="'+esc(r.id)+'" aria-label="'+esc(r.name)+' 삭제">'+ic('trash',16)+'</button></span></div>';
+    h+='<div class="sec"><div class="sech"><span class="n">'+esc(r.name)+'<span class="s">'+md(r.date)+' · 인당 '+rv(t,r,r.amt)+(r.cur==='F'&&!isF(t)?' (≈ '+won(rk(t,r,r.amt))+'원)':'')+'</span></span><span style="display:flex;align-items:center;gap:6px"><span style="font-size:14px" class="'+(full?'okc':'badc')+'">'+(full?'완납':n+'/'+c.N)+'</span><button class="bare" data-a="round-del" data-v="'+esc(r.id)+'" aria-label="'+esc(r.name)+' 삭제">'+ic('trash',16)+'</button></span></div>';
     if(ui.delRound===r.id)h+='<div class="confirm">\''+esc(r.name)+'\' 기록을 삭제할까요?<div class="btns"><button data-a="round-del-no">취소</button><button class="danger" data-a="round-del-yes">삭제</button></div></div>';
-    t.members.forEach(x=>{const pa=paidOf(r,x.id),full=pa>=r.amt,key=r.id+'|'+x.id;
-      h+='<div class="mr"><label><input type="checkbox" data-c="paid" data-v="'+esc(key)+'"'+(full?' checked':'')+'>'+esc(x.name)+'</label>';
-      if(ui.payEdit===key)h+='<span class="payed"><input class="inp" id="payIn" type="text" inputmode="numeric" value="'+(pa?won(pa):'')+'" placeholder="낸 금액"><span>원</span><button data-a="pay-save">저장</button></span>';
-      else h+='<button class="paybtn '+(full?'okc':pa>0?'partc':'badc')+'" data-a="pay-edit" data-v="'+esc(key)+'">'+(full?'납부':pa>0?m(r.amt-pa)+' 남음':'미납')+'</button>';
+    /* 다 낸 멤버는 줄을 긋고 맨 아래로 보내요 */
+    const isFull=x=>paidOf(r,x.id)>=r.amt;
+    t.members.filter(x=>!isFull(x)).concat(t.members.filter(isFull)).forEach(x=>{const pa=paidOf(r,x.id),full=isFull(x),key=r.id+'|'+x.id;
+      h+='<div class="mr"><label><input type="checkbox" data-c="paid" data-v="'+esc(key)+'"'+(full?' checked':'')+'><span'+(full?' class="pdone"':'')+'>'+esc(x.name)+'</span></label>';
+      if(ui.payEdit===key)h+='<span class="payed"><input class="inp" id="payIn" type="text" inputmode="'+(r.cur==='F'&&decOf(t.cur)?'decimal':'numeric')+'" value="'+(pa?(r.cur==='F'?fnum(t,pa):won(pa)):'')+'" placeholder="낸 금액"><span>'+(r.cur==='F'?esc(t.cur.u):'원')+'</span><button data-a="pay-save">저장</button></span>';
+      else h+='<button class="paybtn '+(full?'okc':pa>0?'partc':'badc')+'" data-a="pay-edit" data-v="'+esc(key)+'">'+(full?'납부':pa>0?rv(t,r,r.amt-pa)+' 남음':'미납')+'</button>';
       h+='</div>';});
-    if(ui.payEdit&&ui.payEdit.indexOf(r.id+'|')===0){h+='<p class="hint">실제로 낸 금액을 넣어 주세요. 인당 '+m(r.amt)+'보다 적으면 남은 금액이 표시돼요.</p>'+(ui.err?'<p class="err">'+esc(ui.err)+'</p>':'');}
+    if(ui.payEdit&&ui.payEdit.indexOf(r.id+'|')===0){h+='<p class="hint">실제로 낸 금액을 넣어 주세요. 인당 '+rn(t,r,r.amt)+'보다 적으면 남은 금액이 표시돼요.</p>'+(ui.err?'<p class="err">'+esc(ui.err)+'</p>':'');}
     h+='</div>';});
-  if(ui.roundAdding)h+='<div class="sec"><p style="font-weight:600;font-size:16px">'+esc(nextRoundName(t))+'</p><div class="inline" style="align-items:center"><span style="color:var(--tx2);font-size:16px">인당</span><input class="inp" id="roundNew" type="text" inputmode="numeric" data-f="r.new" placeholder="0" enterkeyhint="done" style="text-align:right"><span>원</span><button data-a="round-add-ok">추가</button><button data-a="round-add-no" aria-label="취소">'+ic('x',14)+'</button></div><p class="hint" id="roundTot"></p>'+(ui.err?'<p class="err">'+esc(ui.err)+'</p>':'')+'</div>';
+  const RF=t.kind==='abroad'&&ui.roundCur==='F';
+  if(ui.roundAdding)h+='<div class="sec"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><p style="font-weight:600;font-size:16px">'+esc(nextRoundName(t))+'</p>'+(t.kind==='abroad'?pill('rcur',RF,'원화','외화','외화로 걷기'):'')+'</div><div class="inline" style="align-items:center"><span style="color:var(--tx2);font-size:16px">인당</span><input class="inp" id="roundNew" type="text" inputmode="'+(RF&&decOf(t.cur)?'decimal':'numeric')+'" data-f="r.new" placeholder="0" enterkeyhint="done" style="text-align:right"><span style="white-space:nowrap">'+(RF?esc(t.cur.u):'원')+'</span><button data-a="round-add-ok">추가</button><button data-a="round-add-no" aria-label="취소">'+ic('x',14)+'</button></div><p class="hint" id="roundTot"></p>'+(ui.err?'<p class="err">'+esc(ui.err)+'</p>':'')+'</div>';
   else h+='<button class="wide" data-a="round-add">'+ic('plus',16)+(t.rounds.length?'추가로 걷기':'1차 회비 걷기')+'</button>';
   h+=vSettle(t);
   if(t.rounds.length){const per=(c.due-c.nonfx)/c.N;
     h+='<div class="sec" style="margin-top:18px"><div class="sech"><span class="n">여행 후 돌려주기</span><span style="font-size:14px;color:var(--tx2)">남은 돈 인당 '+m(per)+'</span></div>';
-    t.members.forEach(x=>{const v=per-(c.unpaid[x.id]||0),b=!!t.refunded[x.id];
+    t.members.forEach(x=>{let v=per-(c.unpaid[x.id]||0);if(Math.abs(v)<1e-6)v=0;const b=!!t.refunded[x.id];
       h+='<div class="mr"><label><input type="checkbox" data-c="ref" data-v="'+esc(x.id)+'"'+(b?' checked':'')+'>'+esc(x.name)+'</label><span style="font-size:15px;'+(b?'color:var(--tx3);text-decoration:line-through':(v<0?'color:var(--bad)':''))+'">'+(v>=0?'돌려줄 돈 '+m(v):'더 받을 돈 '+m(-v))+'</span></div>';});
     h+='<p class="note">덜 낸 사람은 돌려줄 돈에서 남은 금액을 빼고 계산해요.</p></div>';}
   return h;
@@ -598,7 +613,7 @@ function vDues(t,c){
 function vFx(t){
   let h='';
   if(ui.rateEdit){h+='<div class="panel"><p style="font-weight:600;font-size:17px">적용 환율 수정</p>'+curPicker();
-    if(t.cur.k!==ui.rdraft.k&&hasF(t))h+='<p class="warnbox">통화를 바꾸면 '+esc(t.cur.n)+'로 입력한 지출 '+t.exps.filter(e=>e.cur==='F').length+'건은 지금 환율로 원화로 바뀌어 저장돼요.</p>';
+    if(t.cur.k!==ui.rdraft.k&&hasF(t))h+='<p class="warnbox">통화를 바꾸면 '+esc(t.cur.n)+'로 입력한 '+fCnt(t)+'은 지금 환율로 원화로 바뀌어 저장돼요.</p>';
     h+='<p class="hint">환전할 때 받은 환율을 넣으면 정산이 가장 정확해요</p>';
     if(ui.err&&!ui.curAdding)h+='<p class="err">'+esc(ui.err)+'</p>';
     h+='<div class="inline" style="justify-content:flex-end"><button data-a="rate-cancel">취소</button><button data-a="rate-save" style="background:var(--tx);color:var(--bg);border:none">저장</button></div></div>';}
@@ -741,7 +756,7 @@ function openExp(id,preset){const t=cur();
   if(id){const e=t.exps.find(x=>x.id===id);if(!e)return;ui.expId=id;ui.draft={mine:!!e.mine,cur:e.cur,amt:e.amt||0,famt:e.famt||0,cat:e.cat,memo:e.memo||'',date:e.date,payer:e.payer||'',ci:e.ci||'',co:e.co||'',fl:e.fl?clone(e.fl):null};}
   else{ui.expId=null;let d=todayStr();if(t.start&&t.end){if(D(d)<D(t.start))d=t.start;else if(D(d)>D(t.end))d=t.end;}
     ui.draft={mine:false,cur:'K',amt:0,famt:0,cat:t.cats.some(k=>k.n==='식비')?'식비':(t.cats[0]&&t.cats[0].n)||'기타',memo:'',date:d};
-    if(t.kind==='abroad'&&rateOf(t)&&t.fview)ui.draft.cur='F';
+    if(t.kind==='abroad'&&rateOf(t)&&(t.fview||hasFR(t)))ui.draft.cur='F';
     if(preset)Object.assign(ui.draft,preset);}
   const d=ui.draft;if(d.payer==null)d.payer='';
   if(!d.ci){d.ci=t.start||d.date;}if(!d.co){d.co=t.end&&D(t.end)>D(d.ci)?t.end:new Date(D(d.ci)+DAY).toISOString().slice(0,10);}
@@ -784,7 +799,7 @@ const A={
     t.fview=!t.fview;saveTrip(t);flipPill(el,render);},
   'ecur'(v,el){const t=cur(),d=ui.draft;
     if(d.cur!=='F'&&!rateOf(t)){ui.err='환율 탭에서 적용 환율을 먼저 넣어 주세요';render();return;}
-    ui.err='';const r=rateOf(t);
+    ui.err='';d.curSet=true;const r=rateOf(t);
     if(d.cur==='F'){d.amt=d.famt?Math.round(d.famt*r):0;d.cur='K';}
     else{d.famt=d.amt?Number((d.amt/r).toFixed(decOf(t.cur))):0;d.cur='F';}
     flipPill(el,render);},
@@ -824,7 +839,7 @@ const A={
     let rt=null;
     if(d.kind==='abroad'){const old=ui.view==='settings'?cur():null;
       const needW=old&&old.kind==='abroad'&&old.cur.k===ui.rdraft.k&&hasF(old);
-      rt=readRate(needW);if(rt.err){ui.err=needW&&rt.err==='원화 금액을 입력해 주세요'?'외화로 입력한 지출이 있어서 원화 금액을 비울 수 없어요':rt.err;render();return;}}
+      rt=readRate(needW);if(rt.err){ui.err=needW&&rt.err==='원화 금액을 입력해 주세요'?'외화로 입력한 지출이나 회비가 있어서 원화 금액을 비울 수 없어요':rt.err;render();return;}}
     const members=d.sel.map(id=>{const m=memberById(id);return m?{id:m.id,name:m.name}:null;}).filter(Boolean);
     if(ui.view==='new'){const t=norm({id:newId(),name,start:d.start,end:d.end,desc:(d.desc||'').trim(),status:null,members,kind:d.kind,created:Date.now()});
       if(d.kind==='abroad'){t.cur=snapCur(ui.rdraft.k);t.rate={b:rt.b,w:rt.w};}
@@ -873,7 +888,10 @@ const A={
   'exp-del'(){ui.delExp=true;render();},
   'exp-del-no'(){ui.delExp=false;render();},
   'exp-del-yes'(){const t=cur();t.exps=t.exps.filter(e=>e.id!==ui.expId);saveTrip(t);ui.delExp=false;go('trip');},
-  'cat-pick'(v){ui.draft.cat=v;ui.err='';render();},
+  'cat-pick'(v){const t=cur(),d=ui.draft;d.cat=v;
+    /* 금액을 넣기 전이면 숙소·항공 같은 고정 지출은 원화, 나머지는 현지 통화로 맞춰요 */
+    if(!ui.expId&&!d.curSet&&!d.mine&&!d.amt&&!d.famt&&rateOf(t)&&(t.fview||hasFR(t)))d.cur=isFx(t,v)?'K':'F';
+    ui.err='';render();},
   'e-kind'(v){const t=cur(),d=ui.draft,m=v==='p';if(d.mine===m)return;d.mine=m;const L=catsFor(t,m);if(!L.some(k=>k.n===d.cat))d.cat=L.some(k=>k.n==='식비')?'식비':L[0].n;ui.catEdit=false;ui.catAdding=false;ui.catAsk=null;ui.err='';render();},
   'cat-edit'(){ui.catEdit=!ui.catEdit;ui.catAdding=false;ui.catAsk=null;ui.err='';render();},
   'cat-add'(){ui.catAdding=true;ui.focus='catNew';render();},
@@ -886,22 +904,25 @@ const A={
   'cat-x'(v){const t=cur(),m=!!ui.draft.mine;if(t.exps.some(e=>e.cat===v&&!!e.mine===m)){ui.catAsk=v;render();return;}delCat(t,v);},
   'cat-x-no'(){ui.catAsk=null;render();},
   'cat-x-yes'(){const t=cur(),v=ui.catAsk;ui.catAsk=null;delCat(t,v);},
-  'round-add'(){ui.roundAdding=true;ui.err='';ui.focus='roundNew';render();},
+  'round-add'(){const t=cur(),lr=t.rounds[t.rounds.length-1];ui.roundCur=t.kind==='abroad'&&rateOf(t)&&(lr?lr.cur==='F':t.fview)?'F':'K';ui.roundAdding=true;ui.err='';ui.focus='roundNew';render();},
   'round-add-no'(){ui.roundAdding=false;ui.err='';render();},
-  'round-add-ok'(){const t=cur(),el=document.getElementById('roundNew');const v=digits(el&&el.value);
+  'round-add-ok'(){const t=cur(),el=document.getElementById('roundNew');const F=t.kind==='abroad'&&ui.roundCur==='F'&&rateOf(t)>0,v=F?fIn(t,el&&el.value||'').n:digits(el&&el.value);
     if(!(v>0)){ui.err='인당 금액을 입력해 주세요';ui.focus='roundNew';render();return;}
-    t.rounds.push({id:newId(),name:nextRoundName(t),date:todayStr(),amt:v,paid:{}});ui.roundAdding=false;ui.err='';saveTrip(t);render();},
+    t.rounds.push({id:newId(),name:nextRoundName(t),date:todayStr(),cur:F?'F':'K',amt:v,paid:{}});if(F&&t.rounds.filter(r=>r.cur==='F').length===1)t.fview=true;ui.roundAdding=false;ui.err='';saveTrip(t);render();},
+  'rcur'(v,el){const t=cur();
+    if(ui.roundCur!=='F'&&!rateOf(t)){ui.err='환율 탭에서 적용 환율을 먼저 넣어 주세요';render();return;}
+    ui.err='';ui.roundCur=ui.roundCur==='F'?'K':'F';ui.focus='roundNew';flipPill(el,render);},
   'e-payer'(v){const d=ui.draft;d.payer=d.payer===v?'':v;render();},
   'fl-type'(v){ui.draft.fl.type=v;ui.err='';render();},
   'fl-stop-add'(v){const g=ui.draft.fl[v];if(g.stops.length>=3)return;g.stops.push('');ui.focus='stop-'+v+'-'+(g.stops.length-1);render();},
   'fl-stop-x'(v){const p=v.split('|');ui.draft.fl[p[0]].stops.splice(Number(p[1]),1);render();},
   'pay-edit'(v){ui.payEdit=v;ui.err='';ui.focus='payIn';render();},
   'pay-save'(){const t=cur(),k=ui.payEdit;if(!t||!k)return;
-    if(k.indexOf('x:')===0){const p=k.slice(2).split('|'),e=t.exps.find(x=>x.id===p[0]);if(!e)return;const per=Math.round(krw(t,e)/t.members.length);const el=document.getElementById('payIn');const v=digits(el&&el.value);
+    if(k.indexOf('x:')===0){const p=k.slice(2).split('|'),e=t.exps.find(x=>x.id===p[0]);if(!e)return;const per=Math.round(krwR(t,e)/t.members.length);const el=document.getElementById('payIn');const v=digits(el&&el.value);
       if(v>per){ui.err='인당 금액('+won(per)+'원)보다 많이 넣을 수 없어요';ui.focus='payIn';render();return;}
       e.got=e.got||{};if(v>0)e.got[p[1]]=v;else delete e.got[p[1]];ui.payEdit=null;ui.err='';saveTrip(t);render();return;}
-    const p=k.split('|'),r=t.rounds.find(x=>x.id===p[0]);if(!r)return;const el=document.getElementById('payIn');const v=digits(el&&el.value);
-    if(v>r.amt){ui.err='인당 금액('+won(r.amt)+'원)보다 많이 넣을 수 없어요';ui.focus='payIn';render();return;}
+    const p=k.split('|'),r=t.rounds.find(x=>x.id===p[0]);if(!r)return;const el=document.getElementById('payIn');const v=r.cur==='F'?fIn(t,el&&el.value||'').n:digits(el&&el.value);
+    if(v>r.amt){ui.err='인당 금액('+(r.cur==='F'?fnum(t,r.amt)+t.cur.u:won(r.amt)+'원')+')보다 많이 넣을 수 없어요';ui.focus='payIn';render();return;}
     if(v>0)r.paid[p[1]]=v;else delete r.paid[p[1]];ui.payEdit=null;ui.err='';saveTrip(t);render();},
   'round-del'(v){ui.delRound=ui.delRound===v?null:v;render();},
   'round-del-no'(){ui.delRound=null;render();},
@@ -957,7 +978,9 @@ document.addEventListener('input',e=>{const f=e.target.dataset&&e.target.dataset
   else if(f==='t.start'){ui.tdraft.start=v;if(v&&(!ui.tdraft.end||D(ui.tdraft.end)<D(v))){ui.tdraft.end=v;const o=document.querySelector('[data-f="t.end"]');if(o)o.value=v;}}
   else if(f==='t.end')ui.tdraft.end=v;
   else if(f==='r.b')ui.rdraft.b=v;else if(f==='r.w')ui.rdraft.w=v;
-  else if(f==='r.new'){const n=Math.min(digits(v),9999999999);e.target.value=n?won(n):'';const t=cur(),o=document.getElementById('roundTot');if(o&&t)o.textContent=n?t.members.length+'명 × '+won(n)+'원 = 총 '+won(n*t.members.length)+'원':'';}
+  else if(f==='r.new'){const t=cur(),o=document.getElementById('roundTot');
+    if(t&&t.kind==='abroad'&&ui.roundCur==='F'){const x=fIn(t,v);e.target.value=x.s;if(o)o.textContent=x.n?t.members.length+'명 × '+fnum(t,x.n)+t.cur.u+' = 총 '+fnum(t,x.n*t.members.length)+t.cur.u+' (≈ '+won(x.n*t.members.length*rateOf(t))+'원)':'';}
+    else{const n=Math.min(digits(v),9999999999);e.target.value=n?won(n):'';if(o&&t)o.textContent=n?t.members.length+'명 × '+won(n)+'원 = 총 '+won(n*t.members.length)+'원':'';}}
   else if(f==='e.ci'||f==='e.co'){const d=ui.draft;d[f.slice(2)]=v;if(f==='e.ci'&&v&&(!d.co||D(d.co)<=D(v))){d.co=new Date(D(v)+DAY).toISOString().slice(0,10);const o=document.querySelector('[data-f="e.co"]');if(o)o.value=d.co;}const nh=document.getElementById('nightHint');if(nh)nh.textContent=nightText(cur());}
   else if(f.indexOf('fl.')===0){const q=f.split('.'),g=ui.draft.fl[q[1]];if(q[2]==='s')g.stops[Number(q[3])]=v;else g[q[2]]=v;}
   else if(f==='e.memo')ui.draft.memo=v;else if(f==='e.date')ui.draft.date=v;
@@ -972,12 +995,12 @@ document.addEventListener('input',e=>{const f=e.target.dataset&&e.target.dataset
     const o=document.getElementById('calcOut');if(o)o.textContent=calcOut(t);}
   if(ui.err&&(f.indexOf('e.')===0||f.indexOf('r.')===0)){ui.err='';const er=document.querySelector('.err');if(er)er.remove();}
 });
-document.addEventListener('input',e=>{if(e.target.id==='payIn'){const n=Math.min(digits(e.target.value),9999999999);e.target.value=n?won(n):'';}});
+document.addEventListener('input',e=>{if(e.target.id==='payIn'){const t=cur(),r=t&&ui.payEdit&&ui.payEdit.indexOf('x:')!==0?t.rounds.find(x=>x.id===ui.payEdit.split('|')[0]):null;if(r&&r.cur==='F'){e.target.value=fIn(t,e.target.value).s;return;}const n=Math.min(digits(e.target.value),9999999999);e.target.value=n?won(n):'';}});
 document.addEventListener('change',e=>{
   if(e.target.id==='restoreIn'){const f=e.target.files&&e.target.files[0];if(f)readRestore(f);e.target.value='';return;}
   const c=e.target.dataset&&e.target.dataset.c;if(!c)return;const t=cur();if(!t)return;const on=e.target.checked,v=e.target.dataset.v;
   if(c==='inc'){if(on)t.inc[v]=1;else delete t.inc[v];}
-  else if(c==='got'){const p=v.split('|'),e=t.exps.find(x=>x.id===p[0]);if(!e)return;e.got=e.got||{};if(on)e.got[p[1]]=Math.round(krw(t,e)/t.members.length);else delete e.got[p[1]];ui.payEdit=null;}
+  else if(c==='got'){const p=v.split('|'),e=t.exps.find(x=>x.id===p[0]);if(!e)return;e.got=e.got||{};if(on)e.got[p[1]]=Math.round(krwR(t,e)/t.members.length);else delete e.got[p[1]];ui.payEdit=null;}
   else if(c==='paid'){const p=v.split('|'),r=t.rounds.find(x=>x.id===p[0]);if(!r)return;if(on)r.paid[p[1]]=r.amt;else delete r.paid[p[1]];ui.payEdit=null;}
   else if(c==='ref'){if(on)t.refunded[v]=1;else delete t.refunded[v];}
   saveTrip(t);render();
@@ -991,7 +1014,7 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ---------- offline ---------- */
-const APP_VERSION='1.8';
+const APP_VERSION='1.9';
 ['gesturestart','gesturechange','gestureend'].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault(),{passive:false}));
 document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});
 try{if('serviceWorker' in navigator&&location.protocol==='https:'&&!/claude(usercontent)?\.(ai|com)$/.test(location.hostname)){
